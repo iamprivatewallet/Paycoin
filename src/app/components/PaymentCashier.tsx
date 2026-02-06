@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 type PaymentStatus = 'pending' | 'confirming' | 'completed';
@@ -18,11 +18,11 @@ const translations = {
     copy: "复制",
     expireTime: "订单有效时间",
     timeLeft: "剩余",
-    currency: "收款币种",
+    currency: "支付币种",
     contractAddress: "合约地址",
     amount: "支付金额",
     network: "支付网络",
-    address: "收款地址",
+    address: "转账地址",
     networkAlert: "请务必使用",
     networkAlertSuffix: "网络",
     clickToCopy: "点击复制地址",
@@ -39,7 +39,10 @@ const translations = {
     copied: "已复制",
     min: "分",
     sec: "秒",
-    payNow: "立即充值"
+    payNow: "立即充值",
+    amountWarning: "请确保扣除矿工费后，实际到账金额与上述金额相等。",
+    addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为Bnb Smart Chain，否则资产可能永久丢失。",
+    exchangeRate: "汇率: 1 USDT = 1 USD"
   },
   'zh-TW': {
     paymentInfo: "支付資訊",
@@ -50,13 +53,13 @@ const translations = {
     copy: "複製",
     expireTime: "訂單有效時間",
     timeLeft: "剩餘",
-    currency: "收款幣種",
+    currency: "支付幣種",
     contractAddress: "合約地址",
     amount: "支付金額",
     network: "支付網絡",
-    address: "收款地址",
+    address: "轉賬地址",
     networkAlert: "請務必使用",
-    networkAlertSuffix: "網絡",
+    networkAlertSuffix: "網���",
     clickToCopy: "點擊複製地址",
     onlySupport: "僅支持",
     onlySupportSuffix: "充值",
@@ -71,7 +74,10 @@ const translations = {
     copied: "已複製",
     min: "分",
     sec: "秒",
-    payNow: "立即充值"
+    payNow: "立即充值",
+    amountWarning: "請確保扣除礦工費後，實際到賬金額與上述金額相等。",
+    addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為Bnb Smart Chain，否則資產可能永久丟失。",
+    exchangeRate: "匯率: 1 USDT = 1 USD"
   },
   en: {
     paymentInfo: "Payment Info",
@@ -82,11 +88,11 @@ const translations = {
     copy: "Copy",
     expireTime: "Valid Until",
     timeLeft: "Time Left",
-    currency: "Currency",
+    currency: "Payment Currency",
     contractAddress: "Contract",
     amount: "Amount",
     network: "Network",
-    address: "Address",
+    address: "Transfer Address",
     networkAlert: "Please use",
     networkAlertSuffix: "network",
     clickToCopy: "Click to copy",
@@ -103,7 +109,10 @@ const translations = {
     copied: "Copied",
     min: "m",
     sec: "s",
-    payNow: "Pay Now"
+    payNow: "Pay Now",
+    amountWarning: "Please ensure the actual amount received equals the above amount after deducting gas fees.",
+    addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is BNB Smart Chain, otherwise assets may be lost forever.",
+    exchangeRate: "Rate: 1 USDT = 1 USD"
   },
   ja: {
     paymentInfo: "支払い情報",
@@ -135,7 +144,10 @@ const translations = {
     copied: "コピーしました",
     min: "分",
     sec: "秒",
-    payNow: "今すぐ支払う"
+    payNow: "今すぐ支払う",
+    amountWarning: "ガス代を差し引いた後、実際の着金額が上記の金額と等しいことを確認してください。",
+    addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークがBNB Smart Chainであることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
+    exchangeRate: "レート: 1 USDT = 1 USD"
   },
   ko: {
     paymentInfo: "결제 정보",
@@ -167,7 +179,10 @@ const translations = {
     copied: "복사됨",
     min: "분",
     sec: "초",
-    payNow: "즉시 결제"
+    payNow: "즉시 결제",
+    amountWarning: "가스비를 공제한 후 실제 입금 금액이 위 금액과 동일한지 확인하십시오.",
+    addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 BNB Smart Chain인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
+    exchangeRate: "환율: 1 USDT = 1 USD"
   },
   es: {
     paymentInfo: "Información de Pago",
@@ -199,7 +214,10 @@ const translations = {
     copied: "Copiado",
     min: "m",
     sec: "s",
-    payNow: "Pagar Ahora"
+    payNow: "Pagar Ahora",
+    amountWarning: "Asegúrese de que el monto real recibido sea igual al monto anterior después de deducir las tarifas de gas.",
+    addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea BNB Smart Chain; de lo contrario, los activos pueden perderse para siempre.",
+    exchangeRate: "Tasa: 1 USDT = 1 USD"
   },
   tr: {
     paymentInfo: "Ödeme Bilgileri",
@@ -231,7 +249,10 @@ const translations = {
     copied: "Kopyalandı",
     min: "dk",
     sec: "sn",
-    payNow: "Hemen Öde"
+    payNow: "Hemen Öde",
+    amountWarning: "Lütfen gaz ücretleri düşüldükten sonra alınan gerçek tutarın yukarıdaki tutara eşit olduğundan emin olun.",
+    addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının BNB Smart Chain olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
+    exchangeRate: "Kur: 1 USDT = 1 USD"
   },
   de: {
     paymentInfo: "Zahlungsinformationen",
@@ -263,7 +284,10 @@ const translations = {
     copied: "Kopiert",
     min: "m",
     sec: "s",
-    payNow: "Jetzt bezahlen"
+    payNow: "Jetzt bezahlen",
+    amountWarning: "Bitte stellen Sie sicher, dass der tatsächlich erhaltene Betrag nach Abzug der Gasgebühren dem oben genannten Betrag entspricht.",
+    addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk BNB Smart Chain ist, andernfalls können Vermögenswerte für immer verloren gehen.",
+    exchangeRate: "Kurs: 1 USDT = 1 USD"
   },
   fr: {
     paymentInfo: "Infos de paiement",
@@ -295,7 +319,10 @@ const translations = {
     copied: "Copié",
     min: "m",
     sec: "s",
-    payNow: "Payer maintenant"
+    payNow: "Payer maintenant",
+    amountWarning: "Veuillez vous assurer que le montant réel reçu est égal au montant ci-dessus après déduction des frais de gaz.",
+    addressWarning: "Ce code QR est pour un paiement unique seulement. Les paiements répétés ne seront pas crédités. Veuillez vous assurer que le réseau de transfert est BNB Smart Chain, sinon les actifs peuvent être perdus à jamais.",
+    exchangeRate: "Taux: 1 USDT = 1 USD"
   }
 };
 
@@ -482,18 +509,9 @@ const PaymentCashier = () => {
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400">{t.currency}:</span>
-                    <span className="text-white font-medium">{orderData.currency}</span>
-                  </div>
-                  <div className="flex items-start justify-between text-xs pt-1">
-                    <span className="text-gray-500 shrink-0 mt-[2px]">{t.contractAddress}:</span>
-                    <div className="flex items-start justify-end gap-1 min-w-0 flex-1">
-                       <span className="text-gray-400 font-mono break-all text-right leading-relaxed">{orderData.contractAddress}</span>
-                       <button 
-                        onClick={() => copyToClipboard(orderData.contractAddress, t.contractAddress)}
-                        className="text-blue-400 hover:text-blue-300 shrink-0 mt-[2px]"
-                      >
-                        {t.copy}
-                      </button>
+                    <div className="flex items-center gap-1.5">
+                        <CircleDollarSign size={16} className="text-green-500" />
+                        <span className="text-white font-medium">{orderData.currency}</span>
                     </div>
                   </div>
                 </div>
@@ -504,12 +522,35 @@ const PaymentCashier = () => {
                   <span className="text-3xl font-bold text-blue-400 tracking-tight">
                     {orderData.amount} <span className="text-lg text-white/80">{orderData.currency}</span>
                   </span>
+                  
+                  {/* Exchange Rate */}
+                  <span className="text-xs text-gray-500">{t.exchangeRate}</span>
+
+                  {/* Amount Warning */}
+                  <div className="flex items-start gap-2 mt-2 text-yellow-500/90 text-xs bg-yellow-500/5 p-2 rounded border border-yellow-500/10">
+                     <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                     <p>{t.amountWarning}</p>
+                  </div>
                 </div>
 
                 {/* Network */}
                 <div className="flex items-center justify-between border-t border-white/5 pt-3">
                   <span className="text-gray-400">{t.network}:</span>
                   <span className="text-white bg-white/10 px-2 py-1 rounded text-xs">{orderData.network}</span>
+                </div>
+
+                {/* Contract Address */}
+                <div className="flex items-start justify-between text-xs pt-3 border-t border-white/5">
+                  <span className="text-gray-500 shrink-0 mt-[2px]">{t.contractAddress}:</span>
+                  <div className="flex items-start justify-end gap-1 min-w-0 flex-1">
+                      <span className="text-gray-400 font-mono break-all text-right leading-relaxed">{orderData.contractAddress}</span>
+                      <button 
+                      onClick={() => copyToClipboard(orderData.contractAddress, t.contractAddress)}
+                      className="text-blue-400 hover:text-blue-300 shrink-0 mt-[2px]"
+                    >
+                      {t.copy}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -570,10 +611,11 @@ const PaymentCashier = () => {
                     {orderData.address}
                   </div>
                   
-                  <p className="text-xs text-yellow-500/80 flex items-center justify-center gap-1 mt-2 bg-yellow-500/10 py-2 rounded border border-yellow-500/20">
-                    <AlertCircleIcon className="w-3 h-3" />
-                    {t.networkAlert} {orderData.network} {t.networkAlertSuffix}
-                  </p>
+                  {/* Address Warning */}
+                  <div className="text-xs text-yellow-500/80 flex items-start gap-2 mt-2 bg-yellow-500/10 p-3 rounded border border-yellow-500/20">
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-[1px]" />
+                    <span className="leading-relaxed">{t.addressWarning}</span>
+                  </div>
                 </div>
 
                 {/* Pay Now Button */}
