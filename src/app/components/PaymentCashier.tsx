@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 type PaymentStatus = 'pending' | 'confirming' | 'completed';
-type Language = 'zh' | 'en' | 'ja' | 'ko';
+type Language = 'zh' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'es' | 'tr' | 'de' | 'fr';
 
 const translations = {
   zh: {
@@ -38,7 +38,40 @@ const translations = {
     contactSupport: "有任何疑问，请随时联系在线支持!",
     copied: "已复制",
     min: "分",
-    sec: "秒"
+    sec: "秒",
+    payNow: "立即充值"
+  },
+  'zh-TW': {
+    paymentInfo: "支付資訊",
+    pending: "等待支付",
+    confirming: "支付確認中",
+    completed: "支付完成",
+    orderId: "訂單號",
+    copy: "複製",
+    expireTime: "訂單有效時間",
+    timeLeft: "剩餘",
+    currency: "收款幣種",
+    contractAddress: "合約地址",
+    amount: "支付金額",
+    network: "支付網絡",
+    address: "收款地址",
+    networkAlert: "請務必使用",
+    networkAlertSuffix: "網絡",
+    clickToCopy: "點擊複製地址",
+    onlySupport: "僅支持",
+    onlySupportSuffix: "充值",
+    paymentSuccess: "支付成功",
+    depositConfirmed: "您的充值已到賬",
+    note: "注意:",
+    note1: "請在有效時間內完成支付;",
+    note2: "收款地址隨時變化，請務必保存收款資訊;",
+    note3: "請仔細核對充值金額;",
+    note4: "轉賬完成後請耐心等待區塊確認。",
+    contactSupport: "有任何疑問，請隨時聯繫在線支持!",
+    copied: "已複製",
+    min: "分",
+    sec: "秒",
+    payNow: "立即充值"
   },
   en: {
     paymentInfo: "Payment Info",
@@ -69,7 +102,8 @@ const translations = {
     contactSupport: "Any questions? Contact online support!",
     copied: "Copied",
     min: "m",
-    sec: "s"
+    sec: "s",
+    payNow: "Pay Now"
   },
   ja: {
     paymentInfo: "支払い情報",
@@ -100,7 +134,8 @@ const translations = {
     contactSupport: "ご不明な点は、サポートまで！",
     copied: "コピーしました",
     min: "分",
-    sec: "秒"
+    sec: "秒",
+    payNow: "今すぐ支払う"
   },
   ko: {
     paymentInfo: "결제 정보",
@@ -131,15 +166,149 @@ const translations = {
     contactSupport: "궁금한 점은 지원팀에 문의하세요!",
     copied: "복사됨",
     min: "분",
-    sec: "초"
+    sec: "초",
+    payNow: "즉시 결제"
+  },
+  es: {
+    paymentInfo: "Información de Pago",
+    pending: "Pendiente",
+    confirming: "Confirmando",
+    completed: "Completado",
+    orderId: "ID del Pedido",
+    copy: "Copiar",
+    expireTime: "Válido Hasta",
+    timeLeft: "Tiempo Restante",
+    currency: "Moneda",
+    contractAddress: "Contrato",
+    amount: "Cantidad",
+    network: "Red",
+    address: "Dirección",
+    networkAlert: "Por favor use la red",
+    networkAlertSuffix: "",
+    clickToCopy: "Clic para copiar",
+    onlySupport: "Solo soporta depósitos en",
+    onlySupportSuffix: "",
+    paymentSuccess: "Pago Exitoso",
+    depositConfirmed: "Depósito confirmado exitosamente",
+    note: "Nota:",
+    note1: "Complete el pago dentro del tiempo válido.",
+    note2: "La dirección cambia periódicamente, no la guarde.",
+    note3: "Verifique la cantidad cuidadosamente.",
+    note4: "Espere la confirmación del bloque.",
+    contactSupport: "¿Preguntas? ¡Contacte soporte en línea!",
+    copied: "Copiado",
+    min: "m",
+    sec: "s",
+    payNow: "Pagar Ahora"
+  },
+  tr: {
+    paymentInfo: "Ödeme Bilgileri",
+    pending: "Bekliyor",
+    confirming: "Onaylanıyor",
+    completed: "Tamamlandı",
+    orderId: "Sipariş ID",
+    copy: "Kopyala",
+    expireTime: "Geçerlilik Süresi",
+    timeLeft: "Kalan Süre",
+    currency: "Para Birimi",
+    contractAddress: "Sözleşme",
+    amount: "Miktar",
+    network: "Ağ",
+    address: "Adres",
+    networkAlert: "Lütfen",
+    networkAlertSuffix: "ağını kullanın",
+    clickToCopy: "Kopyalamak için tıkla",
+    onlySupport: "Sadece",
+    onlySupportSuffix: "yatırımını destekler",
+    paymentSuccess: "Ödeme Başarılı",
+    depositConfirmed: "Yatırımınız başarıyla onaylandı",
+    note: "Not:",
+    note1: "Lütfen ödemeyi geçerli süre içinde tamamlayın.",
+    note2: "Adres periyodik olarak değişir, kaydetmeyin.",
+    note3: "Lütfen miktarı dikkatlice kontrol edin.",
+    note4: "Lütfen blok onayını bekleyin.",
+    contactSupport: "Sorunuz mu var? Canlı desteğe ulaşın!",
+    copied: "Kopyalandı",
+    min: "dk",
+    sec: "sn",
+    payNow: "Hemen Öde"
+  },
+  de: {
+    paymentInfo: "Zahlungsinformationen",
+    pending: "Ausstehend",
+    confirming: "Bestätigen",
+    completed: "Abgeschlossen",
+    orderId: "Bestell-ID",
+    copy: "Kopieren",
+    expireTime: "Gültig bis",
+    timeLeft: "Verbleibende Zeit",
+    currency: "Währung",
+    contractAddress: "Vertrag",
+    amount: "Betrag",
+    network: "Netzwerk",
+    address: "Adresse",
+    networkAlert: "Bitte verwenden Sie das",
+    networkAlertSuffix: "Netzwerk",
+    clickToCopy: "Zum Kopieren klicken",
+    onlySupport: "Unterstützt nur",
+    onlySupportSuffix: "Einzahlung",
+    paymentSuccess: "Zahlung erfolgreich",
+    depositConfirmed: "Einzahlung erfolgreich bestätigt",
+    note: "Hinweis:",
+    note1: "Bitte schließen Sie die Zahlung innerhalb der gültigen Zeit ab.",
+    note2: "Adresse ändert sich regelmäßig, nicht speichern.",
+    note3: "Bitte überprüfen Sie den Betrag sorgfältig.",
+    note4: "Bitte warten Sie auf die Blockbestätigung.",
+    contactSupport: "Fragen? Kontaktieren Sie den Online-Support!",
+    copied: "Kopiert",
+    min: "m",
+    sec: "s",
+    payNow: "Jetzt bezahlen"
+  },
+  fr: {
+    paymentInfo: "Infos de paiement",
+    pending: "En attente",
+    confirming: "Confirmation",
+    completed: "Terminé",
+    orderId: "ID Commande",
+    copy: "Copier",
+    expireTime: "Valable jusqu'au",
+    timeLeft: "Temps restant",
+    currency: "Devise",
+    contractAddress: "Contrat",
+    amount: "Montant",
+    network: "Réseau",
+    address: "Adresse",
+    networkAlert: "Veuillez utiliser le réseau",
+    networkAlertSuffix: "",
+    clickToCopy: "Cliquer pour copier",
+    onlySupport: "Ne supporte que les dépôts en",
+    onlySupportSuffix: "",
+    paymentSuccess: "Paiement réussi",
+    depositConfirmed: "Dépôt confirmé avec succès",
+    note: "Note :",
+    note1: "Veuillez compléter le paiement dans le temps imparti.",
+    note2: "L'adresse change périodiquement, ne pas enregistrer.",
+    note3: "Veuillez vérifier le montant soigneusement.",
+    note4: "Veuillez attendre la confirmation du bloc.",
+    contactSupport: "Des questions ? Contactez le support en ligne !",
+    copied: "Copié",
+    min: "m",
+    sec: "s",
+    payNow: "Payer maintenant"
   }
 };
 
 const languages: { code: Language; label: string; flag: string }[] = [
   { code: 'zh', label: '简体中文', flag: '🇨🇳' },
+  { code: 'zh-TW', label: '繁體中文', flag: '🇭🇰' },
   { code: 'en', label: 'English', flag: '🇺🇸' },
   { code: 'ja', label: '日本語', flag: '🇯🇵' },
   { code: 'ko', label: '한국어', flag: '🇰🇷' },
+  { code: 'es', label: 'Español', flag: '🇪🇸' },
+  { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
+  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr', label: 'Français', flag: '🇫🇷' },
 ];
 
 const PaymentCashier = () => {
@@ -406,6 +575,17 @@ const PaymentCashier = () => {
                     {t.networkAlert} {orderData.network} {t.networkAlertSuffix}
                   </p>
                 </div>
+
+                {/* Pay Now Button */}
+                <button 
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98] flex items-center justify-center gap-2"
+                  onClick={() => {
+                    toast.info(t.payNow + "...");
+                  }}
+                >
+                  <Zap size={20} fill="currentColor" />
+                  {t.payNow}
+                </button>
               </motion.div>
             )}
             
