@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign } from 'lucide-react';
+import { CheckCircle2, ImageOff, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { queryOrder, QueryOrderResponse } from "../../services/index"
+import { formatTime, remainingSeconds, formatDuration, remainingSecondsWithFormat } from "../../utils/TimeUtils"
+import { templateReplace, isValidString } from "../../utils/StringUtils"
 
-type PaymentStatus = 'pending' | 'confirming' | 'completed';
+type PaymentStatus = 'pending' | 'confirming' | 'completed' | 'error';
 type Language = 'zh' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'es' | 'tr' | 'de' | 'fr';
 
 const translations = {
@@ -29,6 +32,7 @@ const translations = {
     onlySupport: "仅支持",
     onlySupportSuffix: "充值",
     paymentSuccess: "支付成功",
+    paymentError:"支付失败",
     depositConfirmed: "您的充值已到账",
     note: "注意:",
     note1: "请在有效时间内完成支付;",
@@ -41,8 +45,8 @@ const translations = {
     sec: "秒",
     payNow: "立即充值",
     amountWarning: "请确保扣除矿工费后，实际到账金额与上述金额相等。",
-    addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为Bnb Smart Chain，否则资产可能永久丢失。",
-    exchangeRate: "汇率: 1 USDT = 1 USD"
+    addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为{chainName}，否则资产可能永久丢失。",
+    exchangeRate: "汇率:"
   },
   'zh-TW': {
     paymentInfo: "支付資訊",
@@ -64,6 +68,7 @@ const translations = {
     onlySupport: "僅支持",
     onlySupportSuffix: "充值",
     paymentSuccess: "支付成功",
+    paymentError: "付款失敗",
     depositConfirmed: "您的充值已到賬",
     note: "注意:",
     note1: "請在有效時間內完成支付;",
@@ -76,8 +81,8 @@ const translations = {
     sec: "秒",
     payNow: "立即充值",
     amountWarning: "請確保扣除礦工費後，實際到賬金額與上述金額相等。",
-    addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為Bnb Smart Chain，否則資產可能永久丟失。",
-    exchangeRate: "匯率: 1 USDT = 1 USD"
+    addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為{chainName}，否則資產可能永久丟失。",
+    exchangeRate: "匯率:"
   },
   en: {
     paymentInfo: "Payment Info",
@@ -99,6 +104,7 @@ const translations = {
     onlySupport: "Only support",
     onlySupportSuffix: "deposit",
     paymentSuccess: "Payment Successful",
+    paymentError: "Payment Failed",
     depositConfirmed: "Deposit confirmed successfully",
     note: "Note:",
     note1: "Please complete payment within valid time.",
@@ -111,8 +117,8 @@ const translations = {
     sec: "s",
     payNow: "Pay Now",
     amountWarning: "Please ensure the actual amount received equals the above amount after deducting gas fees.",
-    addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is BNB Smart Chain, otherwise assets may be lost forever.",
-    exchangeRate: "Rate: 1 USDT = 1 USD"
+    addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is {chainName}, otherwise assets may be lost forever.",
+    exchangeRate: "Rate:"
   },
   ja: {
     paymentInfo: "支払い情報",
@@ -134,6 +140,7 @@ const translations = {
     onlySupport: "",
     onlySupportSuffix: "のみ対応",
     paymentSuccess: "支払い成功",
+    paymentError: "支払い失敗",
     depositConfirmed: "入金が確認されました",
     note: "注意:",
     note1: "有効期限内に支払いを完了してください。",
@@ -146,8 +153,8 @@ const translations = {
     sec: "秒",
     payNow: "今すぐ支払う",
     amountWarning: "ガス代を差し引いた後、実際の着金額が上記の金額と等しいことを確認してください。",
-    addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークがBNB Smart Chainであることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
-    exchangeRate: "レート: 1 USDT = 1 USD"
+    addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークが {chainName} であることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
+    exchangeRate: "レート:"
   },
   ko: {
     paymentInfo: "결제 정보",
@@ -169,6 +176,7 @@ const translations = {
     onlySupport: "",
     onlySupportSuffix: "입금만 지원",
     paymentSuccess: "결제 성공",
+    paymentError: "결제 실패",
     depositConfirmed: "입금이 확인되었습니다",
     note: "주의:",
     note1: "유효 시간 내에 결제를 완료하십시오.",
@@ -181,8 +189,8 @@ const translations = {
     sec: "초",
     payNow: "즉시 결제",
     amountWarning: "가스비를 공제한 후 실제 입금 금액이 위 금액과 동일한지 확인하십시오.",
-    addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 BNB Smart Chain인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
-    exchangeRate: "환율: 1 USDT = 1 USD"
+    addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 {chainName} 인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
+    exchangeRate: "환율:"
   },
   es: {
     paymentInfo: "Información de Pago",
@@ -204,6 +212,7 @@ const translations = {
     onlySupport: "Solo soporta depósitos en",
     onlySupportSuffix: "",
     paymentSuccess: "Pago Exitoso",
+    paymentError: "Pago fallido",
     depositConfirmed: "Depósito confirmado exitosamente",
     note: "Nota:",
     note1: "Complete el pago dentro del tiempo válido.",
@@ -216,8 +225,8 @@ const translations = {
     sec: "s",
     payNow: "Pagar Ahora",
     amountWarning: "Asegúrese de que el monto real recibido sea igual al monto anterior después de deducir las tarifas de gas.",
-    addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea BNB Smart Chain; de lo contrario, los activos pueden perderse para siempre.",
-    exchangeRate: "Tasa: 1 USDT = 1 USD"
+    addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea {chainName}; de lo contrario, los activos pueden perderse para siempre.",
+    exchangeRate: "Tasa:"
   },
   tr: {
     paymentInfo: "Ödeme Bilgileri",
@@ -239,6 +248,7 @@ const translations = {
     onlySupport: "Sadece",
     onlySupportSuffix: "yatırımını destekler",
     paymentSuccess: "Ödeme Başarılı",
+    paymentError: "Ödeme Başarısız",
     depositConfirmed: "Yatırımınız başarıyla onaylandı",
     note: "Not:",
     note1: "Lütfen ödemeyi geçerli süre içinde tamamlayın.",
@@ -251,8 +261,8 @@ const translations = {
     sec: "sn",
     payNow: "Hemen Öde",
     amountWarning: "Lütfen gaz ücretleri düşüldükten sonra alınan gerçek tutarın yukarıdaki tutara eşit olduğundan emin olun.",
-    addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının BNB Smart Chain olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
-    exchangeRate: "Kur: 1 USDT = 1 USD"
+    addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının {chainName} olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
+    exchangeRate: "Kur:"
   },
   de: {
     paymentInfo: "Zahlungsinformationen",
@@ -274,6 +284,7 @@ const translations = {
     onlySupport: "Unterstützt nur",
     onlySupportSuffix: "Einzahlung",
     paymentSuccess: "Zahlung erfolgreich",
+    paymentError: "Zahlung fehlgeschlagen",
     depositConfirmed: "Einzahlung erfolgreich bestätigt",
     note: "Hinweis:",
     note1: "Bitte schließen Sie die Zahlung innerhalb der gültigen Zeit ab.",
@@ -286,8 +297,8 @@ const translations = {
     sec: "s",
     payNow: "Jetzt bezahlen",
     amountWarning: "Bitte stellen Sie sicher, dass der tatsächlich erhaltene Betrag nach Abzug der Gasgebühren dem oben genannten Betrag entspricht.",
-    addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk BNB Smart Chain ist, andernfalls können Vermögenswerte für immer verloren gehen.",
-    exchangeRate: "Kurs: 1 USDT = 1 USD"
+    addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk {chainName} ist, andernfalls können Vermögenswerte für immer verloren gehen.",
+    exchangeRate: "Kurs:"
   },
   fr: {
     paymentInfo: "Infos de paiement",
@@ -309,6 +320,7 @@ const translations = {
     onlySupport: "Ne supporte que les dépôts en",
     onlySupportSuffix: "",
     paymentSuccess: "Paiement réussi",
+    paymentError: "Échec du paiement",
     depositConfirmed: "Dépôt confirmé avec succès",
     note: "Note :",
     note1: "Veuillez compléter le paiement dans le temps imparti.",
@@ -321,8 +333,8 @@ const translations = {
     sec: "s",
     payNow: "Payer maintenant",
     amountWarning: "Veuillez vous assurer que le montant réel reçu est égal au montant ci-dessus après déduction des frais de gaz.",
-    addressWarning: "Ce code QR est pour un paiement unique seulement. Les paiements répétés ne seront pas crédités. Veuillez vous assurer que le réseau de transfert est BNB Smart Chain, sinon les actifs peuvent être perdus à jamais.",
-    exchangeRate: "Taux: 1 USDT = 1 USD"
+    addressWarning: "Ce code QR est pour un paiement unique seulement. Les paiements répétés ne seront pas crédités. Veuillez vous assurer que le réseau de transfert est {chainName}, sinon les actifs peuvent être perdus à jamais.",
+    exchangeRate: "Taux:"
   }
 };
 
@@ -339,35 +351,84 @@ const languages: { code: Language; label: string; flag: string }[] = [
 ];
 
 const PaymentCashier = () => {
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
   const [status, setStatus] = useState<PaymentStatus>('pending');
   const [lang, setLang] = useState<Language>('zh');
+  const [orderInfo, setOrderInfo] = useState<QueryOrderResponse>();
+  const intervalRef = useRef<number | null>(null);
+  const interval = 4000;
+
+  const params = new URLSearchParams(window.location.search);
+  const orderId = params.get('orderId') || '';
+  const e = params.get('e') || '';
 
   const t = translations[lang];
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
   // Simulate status changes for demonstration
-  useEffect(() => {
-    // Demo: Change status to 'confirming' after 5 seconds, and 'completed' after 10 seconds
-    const t1 = setTimeout(() => setStatus('confirming'), 5000);
-    const t2 = setTimeout(() => setStatus('completed'), 10000);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, []);
+  // useEffect(() => {
+  //   // Demo: Change status to 'confirming' after 5 seconds, and 'completed' after 10 seconds
+  //   const t1 = setTimeout(() => setStatus('confirming'), 5000);
+  //   const t2 = setTimeout(() => setStatus('completed'), 10000);
+  //   return () => {
+  //     clearTimeout(t1);
+  //     clearTimeout(t2);
+  //   };
+  // }, []);
 
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}${t.min} ${s < 10 ? '0' : ''}${s}${t.sec}`;
-  };
+  useEffect(()=>{
+    const cStatus = Number(orderInfo?.status??0)
+    if (cStatus === 0){
+      setStatus('pending')
+    } else if (cStatus === 2){
+      setStatus('confirming')
+    } else if (cStatus === 1){
+      setStatus('completed')
+    } else if (cStatus === -1) {
+      setStatus('error')
+    } else{
+      setStatus('pending')
+    }
+  }, [orderInfo])
+
+  useEffect(() => {
+    const fetch = async () => {
+      await queryOrderInfo();
+
+      // 使用最新 status 检查是否停止
+      if (status === 'completed' || status === 'error') {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
+      }
+    };
+
+    // 立即执行一次
+    fetch();
+
+    intervalRef.current = window.setInterval(fetch, interval);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [orderId, status, interval, orderId, e]);
+
+  // useEffect(()=>{
+  //   queryOrderInfo();
+  // }, [orderId,e])
+
+  const queryOrderInfo = async() => {
+    if (!isValidString(orderId) || !isValidString(e)){
+      return
+    }
+    const result = await queryOrder({
+      orderId,
+      e
+    })
+    setOrderInfo(result)
+  }
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -393,11 +454,10 @@ const PaymentCashier = () => {
     const stepIndex = steps.indexOf(stepStatus);
     
     let isActive = stepIndex === currentIndex;
-    let isCompleted = stepIndex < currentIndex;
-    
+    let isCompleted = stepIndex <= currentIndex;
     // Color logic
     let colorClass = "text-gray-500 bg-gray-800 border-gray-700";
-    if (isActive) {
+    if (isActive && !isCompleted) {
       colorClass = "text-blue-400 bg-blue-500/10 border-blue-500/50";
     } else if (isCompleted) {
       colorClass = "text-green-400 bg-green-500/10 border-green-500/50";
@@ -415,7 +475,7 @@ const PaymentCashier = () => {
         <div className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all duration-300 ${colorClass}`}>
           {isCompleted ? <CheckCircle2 size={16} /> : isActive ? icon : <div className="w-2 h-2 rounded-full bg-current" />}
         </div>
-        <span className={`text-xs ${isActive ? 'text-white font-medium' : isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
+        <span className={`text-xs ${isActive && !isCompleted ? 'text-white font-medium' : isCompleted ? 'text-green-400' : 'text-gray-500'}`}>
           {label}
         </span>
       </div>
@@ -463,21 +523,25 @@ const PaymentCashier = () => {
         
         {/* Header - Centered */}
         <div className="pt-4 pb-4 flex flex-col items-center gap-2 text-center">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-900/20">
-            S
-          </div>
+          <img src={orderInfo?.logo} alt="" className='w-12 h-12 items-center justify-center' />
           <div>
-            <h1 className="text-2xl font-bold text-white">{t.paymentInfo}</h1>
-            <p className="text-sm text-gray-400">SkyPay</p>
+            <h1 className="text-2xl font-bold text-white">{orderInfo?.partnerName}</h1>
+            <p className="text-sm text-gray-400">{orderInfo?.remark}</p>
           </div>
         </div>
 
         {/* Status Tracker - Centered, spanning full width */}
-        <div className="bg-[#2c2c2e] p-4 rounded-xl flex justify-between items-start max-w-2xl mx-auto w-full shadow-inner shadow-black/20">
-            {renderStatusStep('pending', t.pending, status, <Clock size={16} className="animate-pulse"/>)}
-            {renderStatusStep('confirming', t.confirming, status, <Loader2 size={16} className="animate-spin"/>)}
-            {renderStatusStep('completed', t.completed, status, <CheckCircle2 size={16}/>)}
-        </div>
+        {
+          status !== 'error'?
+            <div className="bg-[#2c2c2e] p-4 rounded-xl flex justify-between items-start max-w-2xl mx-auto w-full shadow-inner shadow-black/20">
+              {renderStatusStep('pending', t.pending, status, <Clock size={16} className="animate-pulse" />)}
+              {renderStatusStep('confirming', t.confirming, status, <Loader2 size={16} className="animate-spin" />)}
+              {renderStatusStep('completed', t.completed, status, <CheckCircle2 size={16} />)}
+            </div>
+            :
+            null
+        }
+        
 
         {/* Desktop Split Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
@@ -488,9 +552,9 @@ const PaymentCashier = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">{t.orderId}:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-white">{orderData.id}</span>
+                    <span className="font-mono text-white">{orderInfo?.orderId}</span>
                     <button 
-                      onClick={() => copyToClipboard(orderData.id, t.orderId)}
+                      onClick={() => copyToClipboard(orderInfo?.orderId??"", t.orderId)}
                       className="text-blue-400 hover:text-blue-300 text-xs"
                     >
                       {t.copy}
@@ -498,20 +562,22 @@ const PaymentCashier = () => {
                   </div>
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between">
                   <span className="text-gray-400">{t.expireTime}:</span>
-                  <span className="text-white">{orderData.expireTime}</span>
-                  <span className="text-orange-400 text-xs bg-orange-400/10 px-2 py-0.5 rounded flex items-center gap-1">
-                    {t.timeLeft} {formatTime(timeLeft)}
-                  </span>
+                  <div className='flex gap-2 items-center'>
+                    <span className="text-white">{formatTime(orderInfo?.expiredTime)}</span>
+                      <span className="text-orange-400 text-xs bg-orange-400/10 px-2 py-0.5 rounded flex items-center gap-1">
+                        {t.timeLeft} {remainingSecondsWithFormat(orderInfo?.expiredTime)}
+                      </span>
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400">{t.currency}:</span>
                     <div className="flex items-center gap-1.5">
-                        <CircleDollarSign size={16} className="text-green-500" />
-                        <span className="text-white font-medium">{orderData.currency}</span>
+                        {/* <CircleDollarSign size={16} className="text-green-500" /> */}
+                        <span className="text-white font-medium">{orderInfo?.tokenName}</span>
                     </div>
                   </div>
                 </div>
@@ -520,11 +586,11 @@ const PaymentCashier = () => {
                 <div className="flex flex-col gap-1 py-4 border-t border-white/5 mt-2">
                   <span className="text-gray-400">{t.amount}:</span>
                   <span className="text-3xl font-bold text-blue-400 tracking-tight">
-                    {orderData.amount} <span className="text-lg text-white/80">{orderData.currency}</span>
+                    {orderInfo?.quantity} <span className="text-lg text-white/80">{orderInfo?.tokenName}</span>
                   </span>
                   
                   {/* Exchange Rate */}
-                  <span className="text-xs text-gray-500">{t.exchangeRate}</span>
+                  <span className="text-xs text-gray-500">{t.exchangeRate} {`1 ${orderInfo?.tokenName} = ${orderInfo?.tokenPrice} USD`}</span>
 
                   {/* Amount Warning */}
                   <div className="flex items-start gap-2 mt-2 text-yellow-500/90 text-xs bg-yellow-500/5 p-2 rounded border border-yellow-500/10">
@@ -536,14 +602,14 @@ const PaymentCashier = () => {
                 {/* Network */}
                 <div className="flex items-center justify-between border-t border-white/5 pt-3">
                   <span className="text-gray-400">{t.network}:</span>
-                  <span className="text-white bg-white/10 px-2 py-1 rounded text-xs">{orderData.network}</span>
+                  <span className="text-white bg-white/10 px-2 py-1 rounded text-xs">{orderInfo?.chainName}</span>
                 </div>
 
                 {/* Contract Address */}
                 <div className="flex items-start justify-between text-xs pt-3 border-t border-white/5">
                   <span className="text-gray-500 shrink-0 mt-[2px]">{t.contractAddress}:</span>
                   <div className="flex items-start justify-end gap-1 min-w-0 flex-1">
-                      <span className="text-gray-400 font-mono break-all text-right leading-relaxed">{orderData.contractAddress}</span>
+                    <span className="text-gray-400 font-mono break-all text-right leading-relaxed">{orderInfo?.contractAddress}</span>
                       <button 
                       onClick={() => copyToClipboard(orderData.contractAddress, t.contractAddress)}
                       className="text-blue-400 hover:text-blue-300 shrink-0 mt-[2px]"
@@ -569,7 +635,7 @@ const PaymentCashier = () => {
           {/* Right Column: Payment Actions */}
           <div className="space-y-6">
             
-            {status !== 'completed' && (
+            {status !== 'completed' && status !== 'error' ? (
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -579,19 +645,19 @@ const PaymentCashier = () => {
                 <div className="space-y-2 text-center">
                   <div className="bg-white p-4 rounded-xl w-fit mx-auto relative group shadow-lg shadow-black/30">
                     <QRCodeSVG 
-                      value={orderData.address} 
+                      value={orderInfo?.address??""} 
                       size={200}
                       level="H"
                       includeMargin={false}
                     />
                     {/* Scan Hint Overlay */}
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-xl cursor-pointer"
-                        onClick={() => copyToClipboard(orderData.address, t.address)}>
+                        onClick={() => copyToClipboard(orderInfo?.address??"", t.address)}>
                        <span className="text-black font-medium text-sm">{t.clickToCopy}</span>
                     </div>
                   </div>
                   <p className="text-center text-xs text-gray-500">
-                    {t.onlySupport} <span className="text-gray-300 font-medium">{orderData.currency}</span> {t.onlySupportSuffix}
+                    {t.onlySupport} <span className="text-gray-300 font-medium">{orderInfo?.tokenName}</span> {t.onlySupportSuffix}
                   </p>
                 </div>
 
@@ -600,21 +666,21 @@ const PaymentCashier = () => {
                   <div className="flex items-center justify-between px-1">
                     <span className="text-gray-400 text-sm">{t.address}:</span>
                     <button 
-                      onClick={() => copyToClipboard(orderData.address, t.address)}
+                      onClick={() => copyToClipboard(orderInfo?.address ?? "", t.address)}
                       className="text-blue-400 hover:text-blue-300 text-xs"
                     >
                       {t.copy}
                     </button>
                   </div>
                   <div className="bg-[#2c2c2e] p-4 rounded-lg break-all font-mono text-sm text-white relative group cursor-pointer hover:bg-[#3a3a3c] transition-colors border border-transparent hover:border-blue-500/30 shadow-inner"
-                       onClick={() => copyToClipboard(orderData.address, t.address)}>
-                    {orderData.address}
+                    onClick={() => copyToClipboard(orderInfo?.address ?? "", t.address)}>
+                    {orderInfo?.address ?? ""}
                   </div>
                   
                   {/* Address Warning */}
                   <div className="text-xs text-yellow-500/80 flex items-start gap-2 mt-2 bg-yellow-500/10 p-3 rounded border border-yellow-500/20">
                     <AlertTriangle className="w-4 h-4 shrink-0 mt-[1px]" />
-                    <span className="leading-relaxed">{t.addressWarning}</span>
+                    <span className="leading-relaxed">{templateReplace(t.addressWarning, { chainName: orderInfo?.chainName??"" })}</span>
                   </div>
                 </div>
 
@@ -629,7 +695,7 @@ const PaymentCashier = () => {
                   {t.payNow}
                 </button>
               </motion.div>
-            )}
+            ):null}
             
             {status === 'completed' && (
                  <motion.div 
@@ -645,6 +711,22 @@ const PaymentCashier = () => {
                         <p className="text-green-400 text-base mt-2">{t.depositConfirmed}</p>
                     </div>
                  </motion.div>
+            )}
+
+            {status === 'error' && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-red-500/10 border border-green-500/20 rounded-xl p-8 text-center space-y-4 h-full flex flex-col justify-center items-center min-h-[300px]"
+              >
+                <div className="w-20 h-20 bg-red-500 text-white rounded-full flex items-center justify-center mx-auto text-4xl shadow-lg shadow-green-900/20 animate-bounce-short">
+                  <ImageOff size={40} />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold text-white">{t.paymentError}</h3>
+                  {/* <p className="text-green-400 text-base mt-2">{t.depositConfirmed}</p> */}
+                </div>
+              </motion.div>
             )}
           </div>
         </div>
