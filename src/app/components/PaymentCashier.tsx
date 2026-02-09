@@ -6,13 +6,13 @@ import { CheckCircle2, ImageOff, Clock, Loader2, Globe, ChevronDown, Check, Zap,
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { queryOrder, QueryOrderResponse } from "../../services/index"
 import { formatTime, remainingSeconds, formatDuration, remainingSecondsWithFormat } from "../../utils/TimeUtils"
-import { templateReplace, isValidString } from "../../utils/StringUtils"
+import { templateReplace, isValidString, cutNumberStr } from "../../utils/StringUtils"
 
 type PaymentStatus = 'pending' | 'confirming' | 'completed' | 'error';
-type Language = 'zh-CN' | 'zh-HK' | 'en-US' | 'ja-JP' | 'ko-KR' | 'es-ES' | 'tr-TR' | 'de-DE' | 'fr-FR';
+type Language = 'zh_CN' | 'zh_HK' | 'en_US' | 'ja_JP' | 'ko_KR' | 'es_ES' | 'tr_TR' | 'de_DE' | 'fr_FR';
 
 const translations = {
-  'zh-CN': {
+  'zh_CN': {
     paymentInfo: "支付信息",
     pending: "等待支付",
     confirming: "支付确认中",
@@ -48,7 +48,7 @@ const translations = {
     addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为{chainName}，否则资产可能永久丢失。",
     exchangeRate: "汇率:"
   },
-  'zh-HK': {
+  'zh_HK': {
     paymentInfo: "支付資訊",
     pending: "等待支付",
     confirming: "支付確認中",
@@ -84,7 +84,7 @@ const translations = {
     addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為{chainName}，否則資產可能永久丟失。",
     exchangeRate: "匯率:"
   },
-  'en-US': {
+  'en_US': {
     paymentInfo: "Payment Info",
     pending: "Pending",
     confirming: "Confirming",
@@ -120,7 +120,7 @@ const translations = {
     addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is {chainName}, otherwise assets may be lost forever.",
     exchangeRate: "Rate:"
   },
-  'ja-JP': {
+  'ja_JP': {
     paymentInfo: "支払い情報",
     pending: "支払い待ち",
     confirming: "確認中",
@@ -156,7 +156,7 @@ const translations = {
     addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークが {chainName} であることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
     exchangeRate: "レート:"
   },
-  'ko-KR': {
+  'ko_KR': {
     paymentInfo: "결제 정보",
     pending: "결제 대기",
     confirming: "확인 중",
@@ -192,7 +192,7 @@ const translations = {
     addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 {chainName} 인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
     exchangeRate: "환율:"
   },
-  'es-ES': {
+  'es_ES': {
     paymentInfo: "Información de Pago",
     pending: "Pendiente",
     confirming: "Confirmando",
@@ -228,7 +228,7 @@ const translations = {
     addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea {chainName}; de lo contrario, los activos pueden perderse para siempre.",
     exchangeRate: "Tasa:"
   },
-  'tr-TR': {
+  'tr_TR': {
     paymentInfo: "Ödeme Bilgileri",
     pending: "Bekliyor",
     confirming: "Onaylanıyor",
@@ -264,7 +264,7 @@ const translations = {
     addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının {chainName} olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
     exchangeRate: "Kur:"
   },
-  'de-DE': {
+  'de_DE': {
     paymentInfo: "Zahlungsinformationen",
     pending: "Ausstehend",
     confirming: "Bestätigen",
@@ -300,7 +300,7 @@ const translations = {
     addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk {chainName} ist, andernfalls können Vermögenswerte für immer verloren gehen.",
     exchangeRate: "Kurs:"
   },
-  'fr-FR': {
+  'fr_FR': {
     paymentInfo: "Infos de paiement",
     pending: "En attente",
     confirming: "Confirmation",
@@ -339,25 +339,25 @@ const translations = {
 };
 
 const languages: { code: Language; label: string; flag: string }[] = [
-  { code: 'zh-CN', label: '简体中文', flag: '🇨🇳' },
-  { code: 'zh-HK', label: '繁體中文', flag: '🇭🇰' },
-  { code: 'en-US', label: 'English', flag: '🇺🇸' },
-  { code: 'ja-JP', label: '日本語', flag: '🇯🇵' },
-  { code: 'ko-KR', label: '한국어', flag: '🇰🇷' },
-  { code: 'es-ES', label: 'Español', flag: '🇪🇸' },
-  { code: 'tr-TR', label: 'Türkçe', flag: '🇹🇷' },
-  { code: 'de-DE', label: 'Deutsch', flag: '🇩🇪' },
-  { code: 'fr-FR', label: 'Français', flag: '🇫🇷' },
+  { code: 'zh_CN', label: '简体中文', flag: '🇨🇳' },
+  { code: 'zh_HK', label: '繁體中文', flag: '🇭🇰' },
+  { code: 'en_US', label: 'English', flag: '🇺🇸' },
+  { code: 'ja_JP', label: '日本語', flag: '🇯🇵' },
+  { code: 'ko_KR', label: '한국어', flag: '🇰🇷' },
+  { code: 'es_ES', label: 'Español', flag: '🇪🇸' },
+  { code: 'tr_TR', label: 'Türkçe', flag: '🇹🇷' },
+  { code: 'de_DE', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr_FR', label: 'Français', flag: '🇫🇷' },
 ];
 
 const PaymentCashier = () => {
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get('orderId') || '';
   const e = params.get('e') || '';
-  const languge = params.get('languge') || '';
+  const languge = params.get('language') || 'en_US';
 
   const [status, setStatus] = useState<PaymentStatus>('pending');
-  const [lang, setLang] = useState<Language>((languge as Language) ?? 'en');
+  const [lang, setLang] = useState<Language>((languge as Language) ?? 'en_US');
   const [orderInfo, setOrderInfo] = useState<QueryOrderResponse|undefined>(undefined);
   const [orderExpiredTime, setOrderExpiredTime] = useState<number|null>(null)
   const [seconds,setSeconds] = useState(0)
@@ -617,7 +617,7 @@ const PaymentCashier = () => {
                   <div className='flex gap-2 items-center'>
                     <span className="text-white">{formatTime(orderInfo?.expiredTime)}</span>
                     {
-                      seconds > 0?
+                      seconds > 0 && status !== 'completed' && status !== 'error' ?
                       <span className="text-orange-400 text-xs bg-orange-400/10 px-2 py-0.5 rounded flex items-center gap-1">
                         {t.timeLeft} {formatDuration(seconds)}
                       </span>
@@ -644,7 +644,7 @@ const PaymentCashier = () => {
                   </span>
                   
                   {/* Exchange Rate */}
-                  <span className="text-xs text-gray-500">{t.exchangeRate} {`1 ${orderInfo?.tokenName} = ${orderInfo?.tokenPrice} USD`}</span>
+                  <span className="text-xs text-gray-500">{t.exchangeRate} {`1 ${orderInfo?.tokenName} = ${cutNumberStr(String(orderInfo?.tokenPrice ?? 0),4)} USD`}</span>
 
                   {/* Amount Warning */}
                   <div className="flex items-start gap-2 mt-2 text-yellow-500/90 text-xs bg-yellow-500/5 p-2 rounded border border-yellow-500/10">
@@ -739,7 +739,7 @@ const PaymentCashier = () => {
                 </div>
 
                 {/* Pay Now Button */}
-                <button 
+                {/* <button 
                   className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98] flex items-center justify-center gap-2"
                   onClick={() => {
                     toast.info(t.payNow + "...");
@@ -747,7 +747,7 @@ const PaymentCashier = () => {
                 >
                   <Zap size={20} fill="currentColor" />
                   {t.payNow}
-                </button>
+                </button> */}
               </motion.div>
             ):null}
             

@@ -10,3 +10,12 @@ export function templateReplace(
 export function isValidString(str: string | null | undefined): str is string {
     return str !== null && str !== undefined && str !== '';
 }
+
+export function cutNumberStr(numStr: string, digits=2): string {
+    if (!numStr.includes('.')) return numStr
+
+    const [intPart, decimalPart] = numStr.split('.')
+    return decimalPart.length > digits
+        ? `${intPart}.${decimalPart.slice(0, digits)}`
+        : numStr
+}
