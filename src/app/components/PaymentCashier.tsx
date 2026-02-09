@@ -9,10 +9,10 @@ import { formatTime, remainingSeconds, formatDuration, remainingSecondsWithForma
 import { templateReplace, isValidString } from "../../utils/StringUtils"
 
 type PaymentStatus = 'pending' | 'confirming' | 'completed' | 'error';
-type Language = 'zh' | 'zh-TW' | 'en' | 'ja' | 'ko' | 'es' | 'tr' | 'de' | 'fr';
+type Language = 'zh-CN' | 'zh-HK' | 'en-US' | 'ja-JP' | 'ko-KR' | 'es-ES' | 'tr-TR' | 'de-DE' | 'fr-FR';
 
 const translations = {
-  zh: {
+  'zh-CN': {
     paymentInfo: "支付信息",
     pending: "等待支付",
     confirming: "支付确认中",
@@ -48,7 +48,7 @@ const translations = {
     addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为{chainName}，否则资产可能永久丢失。",
     exchangeRate: "汇率:"
   },
-  'zh-TW': {
+  'zh-HK': {
     paymentInfo: "支付資訊",
     pending: "等待支付",
     confirming: "支付確認中",
@@ -84,7 +84,7 @@ const translations = {
     addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為{chainName}，否則資產可能永久丟失。",
     exchangeRate: "匯率:"
   },
-  en: {
+  'en-US': {
     paymentInfo: "Payment Info",
     pending: "Pending",
     confirming: "Confirming",
@@ -120,7 +120,7 @@ const translations = {
     addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is {chainName}, otherwise assets may be lost forever.",
     exchangeRate: "Rate:"
   },
-  ja: {
+  'ja-JP': {
     paymentInfo: "支払い情報",
     pending: "支払い待ち",
     confirming: "確認中",
@@ -156,7 +156,7 @@ const translations = {
     addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークが {chainName} であることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
     exchangeRate: "レート:"
   },
-  ko: {
+  'ko-KR': {
     paymentInfo: "결제 정보",
     pending: "결제 대기",
     confirming: "확인 중",
@@ -192,7 +192,7 @@ const translations = {
     addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 {chainName} 인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
     exchangeRate: "환율:"
   },
-  es: {
+  'es-ES': {
     paymentInfo: "Información de Pago",
     pending: "Pendiente",
     confirming: "Confirmando",
@@ -228,7 +228,7 @@ const translations = {
     addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea {chainName}; de lo contrario, los activos pueden perderse para siempre.",
     exchangeRate: "Tasa:"
   },
-  tr: {
+  'tr-TR': {
     paymentInfo: "Ödeme Bilgileri",
     pending: "Bekliyor",
     confirming: "Onaylanıyor",
@@ -264,7 +264,7 @@ const translations = {
     addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının {chainName} olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
     exchangeRate: "Kur:"
   },
-  de: {
+  'de-DE': {
     paymentInfo: "Zahlungsinformationen",
     pending: "Ausstehend",
     confirming: "Bestätigen",
@@ -300,7 +300,7 @@ const translations = {
     addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk {chainName} ist, andernfalls können Vermögenswerte für immer verloren gehen.",
     exchangeRate: "Kurs:"
   },
-  fr: {
+  'fr-FR': {
     paymentInfo: "Infos de paiement",
     pending: "En attente",
     confirming: "Confirmation",
@@ -339,27 +339,32 @@ const translations = {
 };
 
 const languages: { code: Language; label: string; flag: string }[] = [
-  { code: 'zh', label: '简体中文', flag: '🇨🇳' },
-  { code: 'zh-TW', label: '繁體中文', flag: '🇭🇰' },
-  { code: 'en', label: 'English', flag: '🇺🇸' },
-  { code: 'ja', label: '日本語', flag: '🇯🇵' },
-  { code: 'ko', label: '한국어', flag: '🇰🇷' },
-  { code: 'es', label: 'Español', flag: '🇪🇸' },
-  { code: 'tr', label: 'Türkçe', flag: '🇹🇷' },
-  { code: 'de', label: 'Deutsch', flag: '🇩🇪' },
-  { code: 'fr', label: 'Français', flag: '🇫🇷' },
+  { code: 'zh-CN', label: '简体中文', flag: '🇨🇳' },
+  { code: 'zh-HK', label: '繁體中文', flag: '🇭🇰' },
+  { code: 'en-US', label: 'English', flag: '🇺🇸' },
+  { code: 'ja-JP', label: '日本語', flag: '🇯🇵' },
+  { code: 'ko-KR', label: '한국어', flag: '🇰🇷' },
+  { code: 'es-ES', label: 'Español', flag: '🇪🇸' },
+  { code: 'tr-TR', label: 'Türkçe', flag: '🇹🇷' },
+  { code: 'de-DE', label: 'Deutsch', flag: '🇩🇪' },
+  { code: 'fr-FR', label: 'Français', flag: '🇫🇷' },
 ];
 
 const PaymentCashier = () => {
-  const [status, setStatus] = useState<PaymentStatus>('pending');
-  const [lang, setLang] = useState<Language>('zh');
-  const [orderInfo, setOrderInfo] = useState<QueryOrderResponse>();
-  const intervalRef = useRef<number | null>(null);
-  const interval = 4000;
-
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get('orderId') || '';
   const e = params.get('e') || '';
+  const languge = params.get('languge') || '';
+
+  const [status, setStatus] = useState<PaymentStatus>('pending');
+  const [lang, setLang] = useState<Language>((languge as Language) ?? 'en');
+  const [orderInfo, setOrderInfo] = useState<QueryOrderResponse|undefined>(undefined);
+  const [orderExpiredTime, setOrderExpiredTime] = useState<number|null>(null)
+  const [seconds,setSeconds] = useState(0)
+  const [errorInfo,setErrorInfo] = useState("");
+  const intervalRef = useRef<number | null>(null);
+  const intervalTimerRef = useRef<number | null>(null);
+  const interval = 4000;
 
   const t = translations[lang];
 
@@ -375,12 +380,14 @@ const PaymentCashier = () => {
   // }, []);
 
   useEffect(()=>{
+    localStorage.setItem("lang", lang)
+  }, [lang])
+
+  useEffect(()=>{
     const cStatus = Number(orderInfo?.status??0)
     if (cStatus === 0){
       setStatus('pending')
-    } else if (cStatus === 2){
-      setStatus('confirming')
-    } else if (cStatus === 1){
+    } else if (cStatus === 1 || cStatus === 2){
       setStatus('completed')
     } else if (cStatus === -1) {
       setStatus('error')
@@ -415,6 +422,31 @@ const PaymentCashier = () => {
     };
   }, [orderId, status, interval, orderId, e]);
 
+  useEffect(()=>{
+    if (orderInfo){
+      intervalTimerRef.current = setInterval(()=>{
+        const expiredTime = orderExpiredTime??0
+        let remaining = remainingSeconds(expiredTime)
+        if (remaining>=0) {
+          remaining-=1;
+          setSeconds(remaining)
+        }else{
+          if (intervalTimerRef.current){
+            clearInterval(intervalTimerRef.current)
+            intervalTimerRef.current = null;
+          }
+        }
+      },1000)
+    }
+
+    return () => {
+      if (intervalTimerRef.current) {
+        clearInterval(intervalTimerRef.current);
+        intervalTimerRef.current = null;
+      }
+    };
+  }, [orderExpiredTime])
+
   // useEffect(()=>{
   //   queryOrderInfo();
   // }, [orderId,e])
@@ -423,11 +455,31 @@ const PaymentCashier = () => {
     if (!isValidString(orderId) || !isValidString(e)){
       return
     }
-    const result = await queryOrder({
+    const data = await queryOrder({
       orderId,
       e
     })
-    setOrderInfo(result)
+    const result = data.data;
+    const code = data.code;
+    const msg = data.msg;
+    if (code === 1){
+      setErrorInfo("")
+      setOrderInfo(result)
+      if (orderExpiredTime === null && result && result.expiredTime) {
+        setOrderExpiredTime(result?.expiredTime ?? 0)
+      }
+    }else{
+      setErrorInfo(msg)
+      if (intervalTimerRef.current) {
+        clearInterval(intervalTimerRef.current);
+        intervalTimerRef.current = null;
+      }
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    }
   }
 
   const copyToClipboard = (text: string, label: string) => {
@@ -436,16 +488,6 @@ const PaymentCashier = () => {
       description: text,
       duration: 2000,
     });
-  };
-
-  const orderData = {
-    id: "00001413410001ABa",
-    expireTime: "2026-02-06 18:00:00",
-    currency: "USDT",
-    contractAddress: "0x55d398326f99059fF775485246999027B3197955", // Mock USDT BEP20 contract
-    network: "BNB Smart Chain",
-    amount: "100.01",
-    address: "0xCF1439F146F9D9C53bb9A65Dfd0AF5A7b8418AFb"
   };
 
   const renderStatusStep = (stepStatus: PaymentStatus, label: string, currentStatus: PaymentStatus, icon: React.ReactNode) => {
@@ -481,6 +523,14 @@ const PaymentCashier = () => {
       </div>
     );
   };
+
+  if (isValidString(errorInfo) || orderInfo === undefined){
+    return (
+      <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
+        {errorInfo}
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
@@ -566,9 +616,13 @@ const PaymentCashier = () => {
                   <span className="text-gray-400">{t.expireTime}:</span>
                   <div className='flex gap-2 items-center'>
                     <span className="text-white">{formatTime(orderInfo?.expiredTime)}</span>
+                    {
+                      seconds > 0?
                       <span className="text-orange-400 text-xs bg-orange-400/10 px-2 py-0.5 rounded flex items-center gap-1">
-                        {t.timeLeft} {remainingSecondsWithFormat(orderInfo?.expiredTime)}
+                        {t.timeLeft} {formatDuration(seconds)}
                       </span>
+                      :null
+                    }
                   </div>
                 </div>
 
@@ -611,7 +665,7 @@ const PaymentCashier = () => {
                   <div className="flex items-start justify-end gap-1 min-w-0 flex-1">
                     <span className="text-gray-400 font-mono break-all text-right leading-relaxed">{orderInfo?.contractAddress}</span>
                       <button 
-                      onClick={() => copyToClipboard(orderData.contractAddress, t.contractAddress)}
+                      onClick={() => copyToClipboard(orderInfo?.contractAddress??"", t.contractAddress)}
                       className="text-blue-400 hover:text-blue-300 shrink-0 mt-[2px]"
                     >
                       {t.copy}

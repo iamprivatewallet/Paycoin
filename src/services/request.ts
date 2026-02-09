@@ -16,24 +16,27 @@ const instance: AxiosInstance = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
+    withCredentials: false
 });
 
 instance.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
+    const lang = localStorage.getItem('lang');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers["Accept-Language"] = lang;
     return config;
 });
 
 instance.interceptors.response.use(
     (response: AxiosResponse<ApiResponse>) => {
         // 注意这里 code = 1 表示成功，修改判断逻辑
-        if (response.data.code !== 1) {
-            return Promise.reject(
-                new Error(response.data.msg || 'Request Error')
-            );
-        }
+        // if (response.data.code !== 1) {
+        //     return Promise.reject(
+        //         new Error(response.data.msg || 'Request Error')
+        //     );
+        // }
         return response; // 返回完整响应
     },
     (error) => {
@@ -47,10 +50,13 @@ instance.interceptors.response.use(
 
 export function request<T = any>(
     config: AxiosRequestConfig
-): Promise<T> {
+): Promise<{ code: number; msg: string; data: T }> {
     return instance
         .request<ApiResponse<T>>(config)
-        .then((res) => res.data.data);
+        .then((res) => {
+            const { code, msg, data } = res.data;
+            return { code, msg, data };
+        });
 }
 
 export function get<T = any>(url: string, config?: AxiosRequestConfig) {
