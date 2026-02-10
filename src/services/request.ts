@@ -32,20 +32,32 @@ instance.interceptors.request.use((config) => {
 
 instance.interceptors.response.use(
     (response: AxiosResponse<ApiResponse>) => {
-        // 注意这里 code = 1 表示成功，修改判断逻辑
-        // if (response.data.code !== 1) {
-        //     return Promise.reject(
-        //         new Error(response.data.msg || 'Request Error')
-        //     );
-        // }
-        return response; // 返回完整响应
+        return response;
     },
     (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token');
-            // 可选：跳转登录
+        if (!error.response) {
+            return Promise.resolve({
+                data: {
+                    code: -1,
+                    msg: 'Network Error',
+                    data: null,
+                },
+            });
         }
-        return Promise.reject(error);
+
+        const { status, data } = error.response;
+
+        if (status === 401) {
+            localStorage.removeItem('token');
+        }
+
+        return Promise.resolve({
+            data: {
+                code: data?.code ?? status,
+                msg: data?.msg ?? 'Request Error',
+                data: null,
+            },
+        });
     }
 );
 

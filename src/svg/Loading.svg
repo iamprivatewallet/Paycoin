@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="170" height="40" viewBox="0 0 170 40" fill="none">
+<style>
+<![CDATA[
+@keyframes wavebounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-5px);
+  }
+  70% {
+    transform: translateY(-2px);
+  }
+}
+.part {
+  animation: wavebounce 2s infinite ease-in-out;
+}
+#part1 { animation-delay: 0s; }
+#part2 { animation-delay: 0.15s; }
+#part3 { animation-delay: 0.3s; }
+#part4 { animation-delay: 0.45s; }
+#part5 { animation-delay: 0.6s; }
+#part6 { animation-delay: 0.75s; }
+#part7 { animation-delay: 0.9s; }
+#part8 { animation-delay: 1.05s; }
+#part9 { animation-delay: 1.2s; }
+#part10 { animation-delay: 1.35s; }
+#part11 { animation-delay: 1.5s; }
+#part12 { animation-delay: 1.65s; }
+]]>
+</style>
+<mask id="mask0_951_33576" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="170" height="40">
+<rect width="170" height="40" fill="#D9D9D9"/>
+</mask>
+<g mask="url(#mask0_951_33576)">
+<rect id="part1" class="part" x="0.336134" y="0.336134" width="7.72694" height="32.9412" fill="black" stroke="black" stroke-width="0.672269"/>
+<path id="part2" class="part" d="M8.39917 4.20215L16.7922 4.20215C23.7537 4.20215 29.3972 9.84562 29.3972 16.8072C29.3972 23.7688 23.7537 29.4122 16.7921 29.4122H8.39917" stroke="black" stroke-width="8.40336"/>
+<path id="part3" class="part" d="M84.1602 4.20215L67.368 4.20215C60.4064 4.20215 54.7629 9.84562 54.7629 16.8072C54.7629 23.7688 60.4064 29.4122 67.368 29.4122H84.1602" stroke="black" stroke-width="8.40336"/>
+<path id="part4" class="part" d="M79.9605 25.2105V22.6895C79.9605 18.9766 76.9507 15.9668 73.2379 15.9668H65.6819" stroke="black" stroke-width="8.40336"/>
+<path id="part5" class="part" d="M41.9966 0.335938C51.0881 0.336158 58.4585 7.7102 58.4585 16.8066C58.4585 25.9031 51.0881 33.2771 41.9966 33.2773C32.9049 33.2773 25.5337 25.9033 25.5337 16.8066C25.5337 7.71007 32.9049 0.335938 41.9966 0.335938ZM41.9966 8.06738C37.1721 8.06738 33.2613 11.9801 33.2612 16.8066C33.2612 21.6332 37.172 25.5459 41.9966 25.5459C46.8209 25.5457 50.7319 21.633 50.7319 16.8066C50.7319 11.9803 46.8209 8.0676 41.9966 8.06738Z" fill="#D7FA3E" stroke="black" stroke-width="0.672269"/>
+<path id="part6" class="part" fill-rule="evenodd" clip-rule="evenodd" d="M53.9925 40C50.9437 36.8885 46.6952 34.958 41.996 34.958C37.2968 34.958 33.0483 36.8885 29.9995 40H53.9925Z" fill="#D7FA3E"/>
+<path id="part7" class="part" fill-rule="evenodd" clip-rule="evenodd" d="M106.838 8.40336H85.9238V0H106.838C113.796 0 119.437 5.64347 119.437 12.605C119.437 19.5666 113.796 25.2101 106.838 25.2101H85.8398V16.8067H106.838C109.157 16.8067 111.037 14.9256 111.037 12.605C111.037 10.2845 109.157 8.40336 106.838 8.40336Z" fill="black"/>
+<rect id="part8" class="part" x="85.8398" y="16.8066" width="8.39921" height="16.8067" fill="black"/>
+<path id="part9" class="part" fill-rule="evenodd" clip-rule="evenodd" d="M134.723 0H126.324L134.198 21.0088H129.432L126.324 29.4122H137.348L138.923 33.6134H147.322L134.723 0Z" fill="black"/>
+<path id="part10" class="part" d="M134.723 0H126.324L113.725 33.6134H122.124L134.723 0Z" fill="black"/>
+<path id="part11" class="part" d="M136.947 0.335938L149.21 24.874H156.857L144.594 0.335938H136.947Z" fill="black" stroke="black" stroke-width="0.672269"/>
+<mask id="path-13-inside-1_951_33576" fill="white">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M170 0H161.601L149.002 25.2101H149.002V33.6134H157.401V25.2101H157.401L170 0Z"/>
+</mask>
+<path id="part12" class="part" fill-rule="evenodd" clip-rule="evenodd" d="M170 0H161.601L149.002 25.2101H149.002V33.6134H157.401V25.2101H157.401L170 0Z" fill="black"/>
+<path d="M161.601 0V-0.672269H161.185L160.999 -0.300529L161.601 0ZM170 0L170.601 0.300529L171.088 -0.672269H170V0ZM149.002 25.2101V25.8824H149.418L149.603 25.5106L149.002 25.2101ZM149.002 25.2101V24.5378H148.33V25.2101H149.002ZM149.002 33.6134H148.33V34.2857H149.002V33.6134ZM157.401 33.6134V34.2857H158.073V33.6134H157.401ZM157.401 25.2101V24.5378H156.729V25.2101H157.401ZM157.401 25.2101V25.8824H157.817L158.003 25.5106L157.401 25.2101ZM161.601 0.672269H170V-0.672269H161.601V0.672269ZM149.603 25.5106L162.202 0.300529L160.999 -0.300529L148.401 24.9096L149.603 25.5106ZM149.002 25.8824H149.002V24.5378H149.002V25.8824ZM149.674 33.6134V25.2101H148.33V33.6134H149.674ZM157.401 32.9412H149.002V34.2857H157.401V32.9412ZM156.729 25.2101V33.6134H158.073V25.2101H156.729ZM157.401 24.5378H157.401V25.8824H157.401V24.5378ZM169.399 -0.300529L156.8 24.9096L158.003 25.5106L170.601 0.300529L169.399 -0.300529Z" fill="black" mask="url(#path-13-inside-1_951_33576)"/>
+</g>
+</svg>

@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign,Copy,ExternalLink,CircleX } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign, Copy, ExternalLink, CircleX,CloudOff } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { queryOrder, QueryOrderResponse } from "../../services/index"
 import { formatTime, remainingSeconds, formatDuration, remainingSecondsWithFormat } from "../../utils/TimeUtils"
 import { templateReplace, isValidString, cutNumberStr } from "../../utils/StringUtils"
+import Loading from "../../svg/Loading.svg";
 
 type PaymentStatus = 'pending' | 'confirming' | 'completed' | 'error';
 type Language = 'zh_CN' | 'zh_HK' | 'en_US' | 'ja_JP' | 'ko_KR' | 'es_ES' | 'tr_TR' | 'de_DE' | 'fr_FR';
@@ -377,6 +378,7 @@ const PaymentCashier = () => {
   const [status, setStatus] = useState<PaymentStatus>('pending');
   const [lang, setLang] = useState<Language>((languge as Language) ?? 'en_US');
   const [orderInfo, setOrderInfo] = useState<QueryOrderResponse|undefined>(undefined);
+  const [isRequestData,setIsRequestData] = useState(false)
   const [orderExpiredTime, setOrderExpiredTime] = useState<number|null>(null)
   const [seconds,setSeconds] = useState(0)
   const [errorInfo,setErrorInfo] = useState("");
@@ -478,6 +480,7 @@ const PaymentCashier = () => {
     const result = data.data;
     const code = data.code;
     const msg = data.msg;
+    setIsRequestData(true)
     if (code === 1){
       setErrorInfo("")
       setOrderInfo(result)
@@ -543,11 +546,22 @@ const PaymentCashier = () => {
       </div>
     );
   };
-
-  if (isValidString(errorInfo) || orderInfo === undefined){
+  
+  if (isValidString(errorInfo) && isRequestData ){
     return (
       <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
-        {errorInfo}
+        <div className='column items-center justify-center' style={{justifyItems:"center"}}>
+          <CloudOff size={80} className='text-red-400' />
+          <span>{errorInfo}</span>
+        </div>
+      </div>
+    )
+  } else if (orderInfo === undefined){
+    return (
+      <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
+        <div className='column'>
+          <img src={Loading} alt="" />
+        </div>
       </div>
     )
   }
