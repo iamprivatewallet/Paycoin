@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, ImageOff, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign,Copy,ExternalLink,CircleX } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { queryOrder, QueryOrderResponse } from "../../services/index"
 import { formatTime, remainingSeconds, formatDuration, remainingSecondsWithFormat } from "../../utils/TimeUtils"
@@ -46,7 +46,9 @@ const translations = {
     payNow: "立即充值",
     amountWarning: "请确保扣除矿工费后，实际到账金额与上述金额相等。",
     addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为{chainName}，否则资产可能永久丢失。",
-    exchangeRate: "汇率:"
+    exchangeRate: "汇率:",
+    hash:"交易哈希",
+    lookTransaction:"查看交易"
   },
   'zh_HK': {
     paymentInfo: "支付資訊",
@@ -82,7 +84,9 @@ const translations = {
     payNow: "立即充值",
     amountWarning: "請確保扣除礦工費後，實際到賬金額與上述金額相等。",
     addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為{chainName}，否則資產可能永久丟失。",
-    exchangeRate: "匯率:"
+    exchangeRate: "匯率:",
+    hash: "交易雜湊",
+    lookTransaction: "查看交易"
   },
   'en_US': {
     paymentInfo: "Payment Info",
@@ -118,7 +122,9 @@ const translations = {
     payNow: "Pay Now",
     amountWarning: "Please ensure the actual amount received equals the above amount after deducting gas fees.",
     addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is {chainName}, otherwise assets may be lost forever.",
-    exchangeRate: "Rate:"
+    exchangeRate: "Rate:",
+    hash: "Tx Hash",
+    lookTransaction: "View Transaction"
   },
   'ja_JP': {
     paymentInfo: "支払い情報",
@@ -154,7 +160,9 @@ const translations = {
     payNow: "今すぐ支払う",
     amountWarning: "ガス代を差し引いた後、実際の着金額が上記の金額と等しいことを確認してください。",
     addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークが {chainName} であることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
-    exchangeRate: "レート:"
+    exchangeRate: "レート:",
+    hash: "Txハッシュ",
+    lookTransaction: "トランザクションを確認"
   },
   'ko_KR': {
     paymentInfo: "결제 정보",
@@ -190,7 +198,9 @@ const translations = {
     payNow: "즉시 결제",
     amountWarning: "가스비를 공제한 후 실제 입금 금액이 위 금액과 동일한지 확인하십시오.",
     addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 {chainName} 인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
-    exchangeRate: "환율:"
+    exchangeRate: "환율:",
+    hash: "Tx 해시",
+    lookTransaction: "트랜잭션 확인"
   },
   'es_ES': {
     paymentInfo: "Información de Pago",
@@ -226,7 +236,9 @@ const translations = {
     payNow: "Pagar Ahora",
     amountWarning: "Asegúrese de que el monto real recibido sea igual al monto anterior después de deducir las tarifas de gas.",
     addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea {chainName}; de lo contrario, los activos pueden perderse para siempre.",
-    exchangeRate: "Tasa:"
+    exchangeRate: "Tasa:",
+    hash: "Hash de transacción",
+    lookTransaction: "Ver transacción"
   },
   'tr_TR': {
     paymentInfo: "Ödeme Bilgileri",
@@ -262,7 +274,9 @@ const translations = {
     payNow: "Hemen Öde",
     amountWarning: "Lütfen gaz ücretleri düşüldükten sonra alınan gerçek tutarın yukarıdaki tutara eşit olduğundan emin olun.",
     addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının {chainName} olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
-    exchangeRate: "Kur:"
+    exchangeRate: "Kur:",
+    hash: "İşlem Hash",
+    lookTransaction: "İşlemi Gör"
   },
   'de_DE': {
     paymentInfo: "Zahlungsinformationen",
@@ -298,7 +312,9 @@ const translations = {
     payNow: "Jetzt bezahlen",
     amountWarning: "Bitte stellen Sie sicher, dass der tatsächlich erhaltene Betrag nach Abzug der Gasgebühren dem oben genannten Betrag entspricht.",
     addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk {chainName} ist, andernfalls können Vermögenswerte für immer verloren gehen.",
-    exchangeRate: "Kurs:"
+    exchangeRate: "Kurs:",
+    hash: "Tx-Hash",
+    lookTransaction: "Transaktion anzeigen"
   },
   'fr_FR': {
     paymentInfo: "Infos de paiement",
@@ -334,7 +350,9 @@ const translations = {
     payNow: "Payer maintenant",
     amountWarning: "Veuillez vous assurer que le montant réel reçu est égal au montant ci-dessus après déduction des frais de gaz.",
     addressWarning: "Ce code QR est pour un paiement unique seulement. Les paiements répétés ne seront pas crédités. Veuillez vous assurer que le réseau de transfert est {chainName}, sinon les actifs peuvent être perdus à jamais.",
-    exchangeRate: "Taux:"
+    exchangeRate: "Taux:",
+    hash: "Hash de transaction",
+    lookTransaction: "Voir la transaction"
   }
 };
 
@@ -400,7 +418,6 @@ const PaymentCashier = () => {
     const fetch = async () => {
       await queryOrderInfo();
 
-      // 使用最新 status 检查是否停止
       if (status === 'completed' || status === 'error') {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -409,7 +426,6 @@ const PaymentCashier = () => {
       }
     };
 
-    // 立即执行一次
     fetch();
 
     intervalRef.current = window.setInterval(fetch, interval);
@@ -480,6 +496,10 @@ const PaymentCashier = () => {
         intervalRef.current = null;
       }
     }
+  }
+
+  const lookScanWithTxHash = () => {
+    window.open(orderInfo?.scanUrl,"_blank")
   }
 
   const copyToClipboard = (text: string, label: string) => {
@@ -569,7 +589,7 @@ const PaymentCashier = () => {
       </div>
 
       {/* Container - Scales up on Desktop */}
-      <div className="w-full max-w-md md:max-w-4xl md:bg-[#2c2c2e]/20 md:backdrop-blur-xl md:p-8 md:rounded-3xl md:shadow-2xl md:border md:border-white/5 space-y-6">
+      <div className="w-full max-w-lg md:max-w-5xl md:bg-[#2c2c2e]/20 md:backdrop-blur-xl md:p-8 md:rounded-3xl md:shadow-2xl md:border md:border-white/5 space-y-6">
         
         {/* Header - Centered */}
         <div className="pt-4 pb-4 flex flex-col items-center gap-2 text-center">
@@ -602,12 +622,13 @@ const PaymentCashier = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400">{t.orderId}:</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-white">{orderInfo?.orderId}</span>
+                    <span className="text-white font-mono break-all text-right leading-relaxed">{orderInfo?.outOrderId}</span>
                     <button 
-                      onClick={() => copyToClipboard(orderInfo?.orderId??"", t.orderId)}
+                      onClick={() => copyToClipboard(orderInfo?.outOrderId ??"", t.orderId)}
                       className="text-blue-400 hover:text-blue-300 text-xs"
                     >
-                      {t.copy}
+                      {/* {t.copy} */}
+                      <Copy size={14} className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors" />
                     </button>
                   </div>
                 </div>
@@ -668,7 +689,8 @@ const PaymentCashier = () => {
                       onClick={() => copyToClipboard(orderInfo?.contractAddress??"", t.contractAddress)}
                       className="text-blue-400 hover:text-blue-300 shrink-0 mt-[2px]"
                     >
-                      {t.copy}
+                      {/* {t.copy} */}
+                      <Copy size={14} className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors" />
                     </button>
                   </div>
                 </div>
@@ -719,16 +741,17 @@ const PaymentCashier = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between px-1">
                     <span className="text-gray-400 text-sm">{t.address}:</span>
-                    <button 
-                      onClick={() => copyToClipboard(orderInfo?.address ?? "", t.address)}
-                      className="text-blue-400 hover:text-blue-300 text-xs"
-                    >
-                      {t.copy}
-                    </button>
                   </div>
-                  <div className="bg-[#2c2c2e] p-4 rounded-lg break-all font-mono text-sm text-white relative group cursor-pointer hover:bg-[#3a3a3c] transition-colors border border-transparent hover:border-blue-500/30 shadow-inner"
-                    onClick={() => copyToClipboard(orderInfo?.address ?? "", t.address)}>
-                    {orderInfo?.address ?? ""}
+
+                  <div className="bg-zinc-900 relative p-2 rounded flex items-start justify-between gap-1 items-center min-w-0 flex-1">
+                    <span className="text-gray-400 font-mono break-all leading-relaxed">{orderInfo?.address}</span>
+                    <button
+                      onClick={() => copyToClipboard(orderInfo?.address ?? "", t.address)}
+                      className="text-blue-400 hover:text-blue-300 shrink-0 mt-[5px]"
+                    >
+                      {/* {t.copy} */}
+                      <Copy size={14} className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors" />
+                    </button>
                   </div>
                   
                   {/* Address Warning */}
@@ -752,19 +775,38 @@ const PaymentCashier = () => {
             ):null}
             
             {status === 'completed' && (
-                 <motion.div 
+                 <>
+                  <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="bg-green-500/10 border border-green-500/20 rounded-xl p-8 text-center space-y-4 h-full flex flex-col justify-center items-center min-h-[300px]"
-                 >
+                  >
                     <div className="w-20 h-20 bg-green-500 text-white rounded-full flex items-center justify-center mx-auto text-4xl shadow-lg shadow-green-900/20 animate-bounce-short">
-                        <CheckCircle2 size={40} />
+                      <CheckCircle2 size={40} />
                     </div>
                     <div>
-                        <h3 className="text-2xl font-bold text-white">{t.paymentSuccess}</h3>
-                        <p className="text-green-400 text-base mt-2">{t.depositConfirmed}</p>
+                      <h3 className="text-2xl font-bold text-white">{t.paymentSuccess}</h3>
+                      <p className="text-green-400 text-base mt-2">{t.depositConfirmed}</p>
                     </div>
-                 </motion.div>
+                  </motion.div>
+
+                  <div className="space-y-4 text-sm bg-[#2c2c2e]/50 p-4 rounded-xl border border-white/5 shadow-sm">
+                    <div className='flex items-center justify-between'>
+                      <span className='text-gray-400'>{t.hash}</span>
+                      <div className='flex text-blue-14 items-center gap-1 cursor-pointer' onClick={lookScanWithTxHash}>
+                        <span className='text-12 text-blue-500'>{t.lookTransaction}</span>
+                        <ExternalLink size={14} className="text-blue-500" />
+                      </div>
+                    </div>
+
+                    <div className='bg-zinc-900 flex items-center justify-between p-2 rounded gap-2'>
+                      <span className='text-gray-400 flex-1 truncate'>
+                        {orderInfo?.txHash??""}
+                      </span>
+                      <Copy size={14} className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors" onClick={() => copyToClipboard(orderInfo?.txHash ?? "", t.hash)} />
+                    </div>
+                  </div>
+                 </>
             )}
 
             {status === 'error' && (
@@ -774,7 +816,7 @@ const PaymentCashier = () => {
                 className="bg-red-500/10 border border-green-500/20 rounded-xl p-8 text-center space-y-4 h-full flex flex-col justify-center items-center min-h-[300px]"
               >
                 <div className="w-20 h-20 bg-red-500 text-white rounded-full flex items-center justify-center mx-auto text-4xl shadow-lg shadow-green-900/20 animate-bounce-short">
-                  <ImageOff size={40} />
+                  <CircleX size={40} />
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-white">{t.paymentError}</h3>

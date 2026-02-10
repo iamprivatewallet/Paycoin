@@ -18,7 +18,8 @@ export interface QueryOrderResponse {
     outOrderId: string;
     logo: string;
     lang: string;
-    txHash: number;
+    txHash: string;
     status: number;
     tokenPrice:number|string;
+    scanUrl:string;
 }
