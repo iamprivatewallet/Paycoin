@@ -1,7 +1,7 @@
 
-  # Cooking tutorial with timer
+  # Pay Coin Web
 
-  This is a code bundle for Cooking tutorial with timer. The original project is available at https://www.figma.com/design/DvZRTFBZD1ztSbBt0GQB35/Cooking-tutorial-with-timer.
+  This is a code bundle for Pay Coin. The original project is available at https://www.figma.com/design/DvZRTFBZD1ztSbBt0GQB35/Cooking-tutorial-with-timer.
 
   ## Running the code
 
