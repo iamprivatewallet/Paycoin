@@ -49,7 +49,9 @@ const translations = {
     addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为{chainName}，否则资产可能永久丢失。",
     exchangeRate: "汇率:",
     hash: "交易哈希",
-    lookTransaction: "查看交易"
+    lookTransaction: "查看交易",
+    saveQrCode: "保存二维码",
+    copyAddress: "复制地址"
   },
   'zh_HK': {
     paymentInfo: "支付資訊",
@@ -87,7 +89,9 @@ const translations = {
     addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為{chainName}，否則資產可能永久丟失。",
     exchangeRate: "匯率:",
     hash: "交易雜湊",
-    lookTransaction: "查看交易"
+    lookTransaction: "查看交易",
+    saveQrCode: "保存二維碼",
+    copyAddress: "複製地址"
   },
   'en_US': {
     paymentInfo: "Payment Info",
@@ -125,7 +129,9 @@ const translations = {
     addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is {chainName}, otherwise assets may be lost forever.",
     exchangeRate: "Rate:",
     hash: "Tx Hash",
-    lookTransaction: "View Transaction"
+    lookTransaction: "View Transaction",
+    saveQrCode: "Save QR Code",
+    copyAddress: "Copy Address"
   },
   'ja_JP': {
     paymentInfo: "支払い情報",
@@ -163,7 +169,9 @@ const translations = {
     addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークが {chainName} であることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
     exchangeRate: "レート:",
     hash: "Txハッシュ",
-    lookTransaction: "トランザクションを確認"
+    lookTransaction: "トランザクションを確認",
+    saveQrCode: "QRコードを保存",
+    copyAddress: "アドレスをコピー"
   },
   'ko_KR': {
     paymentInfo: "결제 정보",
@@ -201,7 +209,9 @@ const translations = {
     addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 {chainName} 인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
     exchangeRate: "환율:",
     hash: "Tx 해시",
-    lookTransaction: "트랜잭션 확인"
+    lookTransaction: "트랜잭션 확인",
+    saveQrCode: "QR 코드 저장",
+    copyAddress: "주소 복사"
   },
   'es_ES': {
     paymentInfo: "Información de Pago",
@@ -239,7 +249,9 @@ const translations = {
     addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea {chainName}; de lo contrario, los activos pueden perderse para siempre.",
     exchangeRate: "Tasa:",
     hash: "Hash de transacción",
-    lookTransaction: "Ver transacción"
+    lookTransaction: "Ver transacción",
+    saveQrCode: "Guardar QR",
+    copyAddress: "Copiar Dirección"
   },
   'tr_TR': {
     paymentInfo: "Ödeme Bilgileri",
@@ -277,7 +289,9 @@ const translations = {
     addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının {chainName} olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
     exchangeRate: "Kur:",
     hash: "İşlem Hash",
-    lookTransaction: "İşlemi Gör"
+    lookTransaction: "İşlemi Gör",
+    saveQrCode: "QR Kaydet",
+    copyAddress: "Adresi Kopyala"
   },
   'de_DE': {
     paymentInfo: "Zahlungsinformationen",
@@ -315,7 +329,9 @@ const translations = {
     addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk {chainName} ist, andernfalls können Vermögenswerte für immer verloren gehen.",
     exchangeRate: "Kurs:",
     hash: "Tx-Hash",
-    lookTransaction: "Transaktion anzeigen"
+    lookTransaction: "Transaktion anzeigen",
+    saveQrCode: "QR Speichern",
+    copyAddress: "Adresse kopieren"
   },
   'fr_FR': {
     paymentInfo: "Infos de paiement",
@@ -353,7 +369,9 @@ const translations = {
     addressWarning: "Ce code QR est pour un paiement unique seulement. Les paiements répétés ne seront pas crédités. Veuillez vous assurer que le réseau de transfert est {chainName}, sinon les actifs peuvent être perdus à jamais.",
     exchangeRate: "Taux:",
     hash: "Hash de transaction",
-    lookTransaction: "Voir la transaction"
+    lookTransaction: "Voir la transaction",
+    saveQrCode: "Enregistrer QR",
+    copyAddress: "Copier l'adresse"
   }
 };
 
@@ -384,6 +402,7 @@ const PaymentCashier = () => {
   const [errorInfo, setErrorInfo] = useState("");
   const intervalRef = useRef<number | null>(null);
   const intervalTimerRef = useRef<number | null>(null);
+  const qrRef = useRef<HTMLDivElement>(null);
   const interval = 4000;
 
   const t = translations[lang] ?? translations['en_US'];
@@ -627,7 +646,7 @@ const PaymentCashier = () => {
 
 
         {/* Desktop Split Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8 items-start">
 
           {/* Left Column: Order Info */}
           <div className="space-y-6">
@@ -694,7 +713,7 @@ const PaymentCashier = () => {
               </div>
 
               {/* Payment Address */}
-              <div className="flex items-start justify-between text-xs pt-3 border-t border-white/5">
+              {/* <div className="flex items-start justify-between text-xs pt-3 border-t border-white/5">
                 <span className="text-gray-500 shrink-0 mt-[2px]">{t.paymentAddress}:</span>
                 <div className="flex items-start justify-end gap-1 min-w-0 flex-1">
                   <span className="text-gray-400 font-mono break-all text-right leading-relaxed">{orderInfo?.address}</span>
@@ -702,11 +721,10 @@ const PaymentCashier = () => {
                     onClick={() => copyToClipboard(orderInfo?.address ?? "", t.paymentAddress)}
                     className="text-blue-400 hover:text-blue-300 shrink-0 mt-[2px]"
                   >
-                    {/* {t.copy} */}
                     <Copy size={14} className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors" />
                   </button>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Notes - Desktop Position */}
@@ -730,60 +748,81 @@ const PaymentCashier = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
-                {/* QR Code Section */}
-                <div className="space-y-2 text-center">
-                  <div className="bg-white p-4 rounded-xl w-fit mx-auto relative group shadow-lg shadow-black/30">
-                    <QRCodeSVG
-                      value={orderInfo?.address ?? ""}
-                      size={200}
-                      level="H"
-                      includeMargin={false}
-                    />
-                    {/* Scan Hint Overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-xl cursor-pointer"
-                      onClick={() => copyToClipboard(orderInfo?.address ?? "", t.address)}>
-                      <span className="text-black font-medium text-sm">{t.clickToCopy}</span>
+                {/* QR + Address Side-by-Side Layout */}
+                <div className="bg-[#2c2c2e]/50 rounded-xl border border-white/5 p-4 space-y-3">
+                  <div className="flex gap-4 items-start">
+                    {/* Left: QR Code */}
+                    <div ref={qrRef} className="bg-white p-2.5 rounded-xl shrink-0 shadow-lg shadow-black/30">
+                      <QRCodeSVG
+                        value={orderInfo?.address ?? ""}
+                        size={110}
+                        level="H"
+                        includeMargin={false}
+                      />
+                    </div>
+
+                    {/* Right: Address + Buttons */}
+                    <div className="flex flex-col justify-between flex-1 min-w-0 gap-3">
+                      {/* Address Text */}
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">{t.paymentAddress}</p>
+                        <p className="text-sm font-mono break-all leading-relaxed text-gray-200">
+                          {orderInfo?.address}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-2">
+                        <button
+                          className="flex-1 text-xs text-gray-300 bg-white/8 hover:bg-white/15 border border-white/10 rounded-lg py-2 px-2 transition-colors"
+                          onClick={() => {
+                            const svg = qrRef.current?.querySelector('svg');
+                            if (!svg) return;
+                            const svgData = new XMLSerializer().serializeToString(svg);
+                            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                            const svgUrl = URL.createObjectURL(svgBlob);
+                            const img = new Image();
+                            img.onload = () => {
+                              const scale = 2;
+                              const size = (img.width || 110) * scale;
+                              const canvas = document.createElement('canvas');
+                              canvas.width = size;
+                              canvas.height = size;
+                              const ctx = canvas.getContext('2d');
+                              ctx?.drawImage(img, 0, 0, size, size);
+                              URL.revokeObjectURL(svgUrl);
+                              const pngUrl = canvas.toDataURL('image/png');
+                              const a = document.createElement('a');
+                              a.href = pngUrl;
+                              a.download = 'qrcode.png';
+                              a.click();
+                            };
+                            img.src = svgUrl;
+                          }}
+                        >
+                          {t.saveQrCode}
+                        </button>
+                        <button
+                          className="flex-1 text-xs text-blue-400 bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 rounded-lg py-2 px-2 transition-colors font-medium"
+                          onClick={() => copyToClipboard(orderInfo?.address ?? "", t.paymentAddress)}
+                        >
+                          {t.copyAddress}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-center text-xs text-gray-500">
+
+                  {/* Token hint */}
+                  <p className="text-xs text-gray-500">
                     {t.onlySupport} <span className="text-gray-300 font-medium">{orderInfo?.tokenName}</span> {t.onlySupportSuffix}
                   </p>
                 </div>
 
-                {/* Address Box */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between px-1">
-                    <span className="text-gray-400 text-sm">{t.address}:</span>
-                  </div>
-
-                  <div className="bg-zinc-900 relative p-2 rounded flex items-start justify-between gap-1 items-center min-w-0 flex-1">
-                    <span className="text-gray-400 font-mono break-all leading-relaxed">{orderInfo?.address}</span>
-                    <button
-                      onClick={() => copyToClipboard(orderInfo?.address ?? "", t.address)}
-                      className="text-blue-400 hover:text-blue-300 shrink-0 mt-[5px]"
-                    >
-                      {/* {t.copy} */}
-                      <Copy size={14} className="text-gray-400 hover:text-blue-500 cursor-pointer transition-colors" />
-                    </button>
-                  </div>
-
-                  {/* Address Warning */}
-                  <div className="text-xs text-yellow-500/80 flex items-start gap-2 mt-2 bg-yellow-500/10 p-3 rounded border border-yellow-500/20">
-                    <AlertTriangle className="w-4 h-4 shrink-0 mt-[1px]" />
-                    <span className="leading-relaxed">{templateReplace(t.addressWarning, { chainName: orderInfo?.chainName ?? "" })}</span>
-                  </div>
+                {/* Address Warning */}
+                <div className="text-xs text-yellow-500/80 flex items-start gap-2 bg-yellow-500/10 p-3 rounded border border-yellow-500/20">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-[1px]" />
+                  <span className="leading-relaxed">{templateReplace(t.addressWarning, { chainName: orderInfo?.chainName ?? "" })}</span>
                 </div>
-
-                {/* Pay Now Button */}
-                {/* <button 
-                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98] flex items-center justify-center gap-2"
-                  onClick={() => {
-                    toast.info(t.payNow + "...");
-                  }}
-                >
-                  <Zap size={20} fill="currentColor" />
-                  {t.payNow}
-                </button> */}
               </motion.div>
             ) : null}
 
