@@ -4,13 +4,14 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign, Copy, ExternalLink, CircleX, CloudOff } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { useLocation, useNavigate } from "react-router-dom";
 import { queryOrder, QueryOrderResponse } from "../../services/index"
 import { formatTime, remainingSeconds, formatDuration, remainingSecondsWithFormat } from "../../utils/TimeUtils"
 import { templateReplace, isValidString, cutNumberStr } from "../../utils/StringUtils"
+import { paymentCashierTranslations, paymentLanguages, type Language } from "../../i18n/paymentCashier";
 import Loading from "../../svg/Loading.svg";
 
 type PaymentStatus = 'pending' | 'confirming' | 'completed' | 'error';
-type Language = 'zh_CN' | 'zh_HK' | 'en_US' | 'ja_JP' | 'ko_KR' | 'es_ES' | 'tr_TR' | 'de_DE' | 'fr_FR';
 
 const translations = {
   'zh_CN': {
@@ -375,19 +376,14 @@ const translations = {
   }
 };
 
-const languages: { code: Language; label: string; flag: string }[] = [
-  { code: 'zh_CN', label: '简体中文', flag: '🇨🇳' },
-  { code: 'zh_HK', label: '繁體中文', flag: '🇭🇰' },
-  { code: 'en_US', label: 'English', flag: '🇺🇸' },
-  { code: 'ja_JP', label: '日本語', flag: '🇯🇵' },
-  { code: 'ko_KR', label: '한국어', flag: '🇰🇷' },
-  { code: 'es_ES', label: 'Español', flag: '🇪🇸' },
-  { code: 'tr_TR', label: 'Türkçe', flag: '🇹🇷' },
-  { code: 'de_DE', label: 'Deutsch', flag: '🇩🇪' },
-  { code: 'fr_FR', label: 'Français', flag: '🇫🇷' },
-];
+const PAGE_STYLES = [
+  { path: "/pro", label: "专业版" },
+  { path: "/enterprise", label: "企业版" },
+] as const;
 
 const PaymentCashier = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get('orderId') || '';
   const e = params.get('e') || '';
@@ -405,7 +401,7 @@ const PaymentCashier = () => {
   const qrRef = useRef<HTMLDivElement>(null);
   const interval = 4000;
 
-  const t = translations[lang] ?? translations['en_US'];
+  const t = paymentCashierTranslations[lang] ?? paymentCashierTranslations['en_US'];
 
   // Simulate status changes for demonstration
   // useEffect(() => {
@@ -588,21 +584,21 @@ const PaymentCashier = () => {
     <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
 
       {/* Language Switcher - Absolute Top Right */}
-      <div className="absolute top-4 right-4 z-50">
+      <div className="absolute top-4 right-4 z-50 space-y-2">
         <DropdownMenu.Root>
           <DropdownMenu.Trigger asChild>
             <button className="flex items-center gap-2 bg-[#2c2c2e] hover:bg-[#3a3a3c] text-gray-300 px-3 py-2 rounded-lg text-sm border border-white/10 transition-colors outline-none">
               <Globe size={16} />
-              <span>{languages.find(l => l.code === lang)?.label}</span>
+              <span>{paymentLanguages.find(l => l.code === lang)?.label}</span>
               <ChevronDown size={14} className="opacity-50" />
             </button>
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content
-              className="bg-[#2c2c2e] border border-white/10 rounded-lg shadow-xl p-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-200"
+              className="z-[120] bg-[#2c2c2e] border border-white/10 rounded-lg shadow-xl p-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-200"
               sideOffset={5}
             >
-              {languages.map((l) => (
+              {paymentLanguages.map((l) => (
                 <DropdownMenu.Item
                   key={l.code}
                   className="flex items-center justify-between text-sm text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md cursor-pointer outline-none"
@@ -613,6 +609,33 @@ const PaymentCashier = () => {
                     {l.label}
                   </span>
                   {lang === l.code && <Check size={14} className="text-blue-400" />}
+                </DropdownMenu.Item>
+              ))}
+
+            </DropdownMenu.Content>
+          </DropdownMenu.Portal>
+        </DropdownMenu.Root>
+
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger asChild>
+            <button className="flex items-center gap-2 bg-[#2c2c2e] hover:bg-[#3a3a3c] text-gray-300 px-3 py-2 rounded-lg text-sm border border-white/10 transition-colors outline-none w-full">
+              <span>风格切换</span>
+              <ChevronDown size={14} className="opacity-50 ml-auto" />
+            </button>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Portal>
+            <DropdownMenu.Content
+              className="z-[120] bg-[#2c2c2e] border border-white/10 rounded-lg shadow-xl p-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-200"
+              sideOffset={5}
+            >
+              {PAGE_STYLES.map((s) => (
+                <DropdownMenu.Item
+                  key={s.path}
+                  className="flex items-center justify-between text-sm text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md cursor-pointer outline-none"
+                  onSelect={() => navigate({ pathname: s.path, search: location.search })}
+                >
+                  <span>{s.label}</span>
+                  {location.pathname === s.path && <Check size={14} className="text-blue-400" />}
                 </DropdownMenu.Item>
               ))}
             </DropdownMenu.Content>

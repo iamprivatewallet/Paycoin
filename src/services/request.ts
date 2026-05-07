@@ -11,8 +11,8 @@ export interface ApiResponse<T = any> {
 }
 
 const instance: AxiosInstance = axios.create({
-    // baseURL: 'https://sandbox-api.privatex.io/sdk/api/v2/exchange',//测试
-    baseURL: 'https://xpay.cybirdpay.com/api',//正式
+    baseURL: 'https://sandbox-api.privatex.io/sdk/api/v2/exchange',//测试
+    // baseURL: 'https://xpay.cybirdpay.com/api',//正式
     timeout: 15000,
     headers: {
         'Content-Type': 'application/json',
