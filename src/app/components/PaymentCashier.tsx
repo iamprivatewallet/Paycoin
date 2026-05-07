@@ -381,16 +381,22 @@ const PAGE_STYLES = [
   { path: "/enterprise", label: "企业版" },
 ] as const;
 
-const PaymentCashier = () => {
+type PaymentCashierProps = {
+  orderId: string;
+  e: string;
+  language: string;
+  search: string;
+};
+
+const PaymentCashier = ({ orderId, e, language, search }: PaymentCashierProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const params = new URLSearchParams(window.location.search);
-  const orderId = params.get('orderId') || '';
-  const e = params.get('e') || '';
-  const languge = params.get('language') || 'en_US';
+  const initialLanguage: Language = language in paymentCashierTranslations
+    ? (language as Language)
+    : 'en_US';
 
   const [status, setStatus] = useState<PaymentStatus>('pending');
-  const [lang, setLang] = useState<Language>((languge as Language) ?? 'en_US');
+  const [lang, setLang] = useState<Language>(initialLanguage);
   const [orderInfo, setOrderInfo] = useState<QueryOrderResponse | undefined>(undefined);
   const [isRequestData, setIsRequestData] = useState(false)
   const [orderExpiredTime, setOrderExpiredTime] = useState<number | null>(null)
@@ -563,8 +569,8 @@ const PaymentCashier = () => {
 
   if (isValidString(errorInfo) && isRequestData) {
     return (
-      <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
-        <div className='column items-center justify-center' style={{ justifyItems: "center" }}>
+      <div className="fixed inset-0 z-50 bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center">
+        <div className="flex w-full flex-col items-center justify-center gap-3">
           <CloudOff size={80} className='text-red-400' />
           <span>{errorInfo}</span>
         </div>
@@ -572,9 +578,9 @@ const PaymentCashier = () => {
     )
   } else if (orderInfo === undefined) {
     return (
-      <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
-        <div className='column'>
-          <img src={Loading} alt="" />
+      <div className="fixed inset-0 z-50 bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center">
+        <div className="flex w-full flex-col items-center justify-center">
+          <img src={Loading} alt="loading" className="block max-w-full" />
         </div>
       </div>
     )
@@ -632,7 +638,7 @@ const PaymentCashier = () => {
                 <DropdownMenu.Item
                   key={s.path}
                   className="flex items-center justify-between text-sm text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md cursor-pointer outline-none"
-                  onSelect={() => navigate({ pathname: s.path, search: location.search })}
+                  onSelect={() => navigate({ pathname: s.path, search })}
                 >
                   <span>{s.label}</span>
                   {location.pathname === s.path && <Check size={14} className="text-blue-400" />}

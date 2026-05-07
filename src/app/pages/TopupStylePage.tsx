@@ -168,15 +168,35 @@ function StyleRouteSelector() {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type PaymentStatus = "pending" | "confirming" | "completed" | "error";
+type TopupStylePageProps = {
+  orderId: string;
+  e: string;
+  language: string;
+  search: string;
+};
 
 function parseBool(val: string | null, def = true): boolean {
   if (val === null) return def;
   return !["0", "false", "no"].includes(val.toLowerCase());
 }
 
-function getInitialParams(): { lang: LangKey; showSelector: boolean; dark: boolean } {
-  const p = new URLSearchParams(window.location.search);
-  const rawLang = p.get("lang") ?? "en";
+function mapLanguageToLangKey(language: string): LangKey {
+  const languageMap: Record<string, LangKey> = {
+    en_us: "en",
+    zh_cn: "zh-CN",
+    fr_fr: "fr",
+    de_de: "de",
+    es_es: "es",
+    ja_jp: "ja",
+    ko_kr: "ko",
+    ar_sa: "ar",
+  };
+  return languageMap[language.toLowerCase()] ?? "en";
+}
+
+function getInitialParams(search: string, language: string): { lang: LangKey; showSelector: boolean; dark: boolean } {
+  const p = new URLSearchParams(search);
+  const rawLang = p.get("lang") ?? mapLanguageToLangKey(language);
   const lang: LangKey = LANGUAGES.some((l) => l.key === rawLang) ? (rawLang as LangKey) : "en";
   const showSelector = parseBool(p.get("showLangSelector"), true);
   const rawTheme = p.get("theme") ?? "";
@@ -184,12 +204,8 @@ function getInitialParams(): { lang: LangKey; showSelector: boolean; dark: boole
   return { lang, showSelector, dark };
 }
 
-export default function TopupStylePage() {
-  const params = new URLSearchParams(window.location.search);
-  const orderId = params.get("orderId") || "";
-  const e = params.get("e") || "";
-
-  const initial = useMemo(() => getInitialParams(), []);
+export default function TopupStylePage({ orderId, e, language, search }: TopupStylePageProps) {
+  const initial = useMemo(() => getInitialParams(search, language), [search, language]);
   const [lang, setLang] = useState<LangKey>(initial.lang);
   const [dark, setDark] = useState(initial.dark);
   const showSelector = initial.showSelector;
@@ -413,7 +429,7 @@ export default function TopupStylePage() {
 
   if (isValidString(errorInfo) && isRequestData && !orderInfo) {
     return (
-      <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
+      <div className="fixed inset-0 z-50 bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center">
         <div className="column items-center justify-center flex flex-col gap-3" style={{ justifyItems: "center" }}>
           <CloudOff size={80} className="text-red-400" />
           <span>{errorInfo}</span>
@@ -424,8 +440,10 @@ export default function TopupStylePage() {
 
   if (orderInfo === undefined) {
     return (
-      <div className="min-h-screen bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center relative">
-        <img src={Loading} alt="" />
+      <div className="fixed inset-0 z-50 bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center">
+        <div className="flex w-full flex-col items-center justify-center">
+          <img src={Loading} alt="loading" className="block max-w-full" />
+        </div>
       </div>
     );
   }
@@ -588,9 +606,9 @@ export default function TopupStylePage() {
               </div>
             </div>
 
-            <button type="button" className="w-4/5 py-3.5 rounded-2xl bg-[#f59e0b] text-white text-sm font-bold shadow-md hover:bg-[#d97706] active:scale-[0.98] transition-all">
+            {/* <button type="button" className="w-4/5 py-3.5 rounded-2xl bg-[#f59e0b] text-white text-sm font-bold shadow-md hover:bg-[#d97706] active:scale-[0.98] transition-all">
               {t.backHome}
-            </button>
+            </button> */}
           </div>
 
           <div className={`mx-5 mb-4 rounded-xl px-4 py-3 flex gap-3 border transition-colors duration-300 ${status === "error" ? "items-center" : "items-start"}`} style={{ background: th.timerBg, borderColor: th.timerBorder }}>
