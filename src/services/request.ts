@@ -10,9 +10,21 @@ export interface ApiResponse<T = any> {
     data: T;
 }
 
+const TEST_API_BASE = import.meta.env.VITE_TEST_API_BASE;
+const PROD_API_BASE = import.meta.env.VITE_PROD_API_BASE;
+const USE_PROD_API_IN_DEV = import.meta.env.VITE_USE_PROD_API === 'true';
+
+function resolveBaseURL() {
+    // 打包后统一走当前站点域名 + /api
+    if (import.meta.env.PROD && typeof window !== 'undefined') {
+        return `${window.location.origin}/api`;
+    }
+    // 开发环境通过 env 选择测试/生产接口
+    return USE_PROD_API_IN_DEV ? PROD_API_BASE : TEST_API_BASE;
+}
+
 const instance: AxiosInstance = axios.create({
-    baseURL: 'https://sandbox-api.privatex.io/sdk/api/v2/exchange',//测试
-    // baseURL: 'https://xpay.cybirdpay.com/api',//正式
+    baseURL: resolveBaseURL(),
     timeout: 15000,
     headers: {
         'Content-Type': 'application/json',

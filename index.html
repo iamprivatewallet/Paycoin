@@ -6,6 +6,24 @@
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>PayCoin</title>
       <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+      <script>
+        (function () {
+          var defaultFavicon = "/favicon.ico";
+          var fileName = defaultFavicon.split("/").pop() || "favicon.ico";
+          var domainFavicon = window.location.origin + "/" + fileName;
+          var link = document.querySelector('link[rel="icon"]');
+          if (!link) return;
+
+          var probe = new Image();
+          probe.onload = function () {
+            link.setAttribute("href", domainFavicon);
+          };
+          probe.onerror = function () {
+            link.setAttribute("href", defaultFavicon);
+          };
+          probe.src = domainFavicon;
+        })();
+      </script>
     </head>
 
     <body>

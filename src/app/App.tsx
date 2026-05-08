@@ -27,8 +27,6 @@ export default function App() {
         <Route path="/" element={<RedirectToProWithQuery />} />
         <Route path="/pro" element={<PaymentCashier {...routeQuery} />} />
         <Route path="/enterprise" element={<TopupStylePage {...routeQuery} />} />
-        <Route path="/style-a" element={<Navigate to={`/pro${location.search}`} replace />} />
-        <Route path="/style-b" element={<Navigate to={`/enterprise${location.search}`} replace />} />
       </Routes>
       <Toaster position="top-center" theme="dark" />
     </div>

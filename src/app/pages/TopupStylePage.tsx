@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
-import { Clock, AlertTriangle, CheckCircle2, ChevronDown, Globe, Sun, Moon, LayoutTemplate, CloudOff } from "lucide-react";
+import { Clock, AlertTriangle, CheckCircle2, ChevronDown, Globe, Sun, Moon, CloudOff } from "lucide-react";
 import {
   type LangKey,
   LANGUAGES,
@@ -109,62 +108,6 @@ function LangSelector({ lang, onChange }: { lang: LangKey; onChange: (l: LangKey
   );
 }
 
-const STYLE_ROUTES = [
-  { path: "/pro", label: "专业版" },
-  { path: "/enterprise", label: "企业版" },
-] as const;
-
-function StyleRouteSelector() {
-  const navigate = useNavigate();
-  const loc = useLocation();
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const current = STYLE_ROUTES.find((s) => loc.pathname === s.path) ?? STYLE_ROUTES[0];
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f3f4f6] border border-[#e5e7eb] text-xs font-medium text-[#374151] hover:bg-[#e9eaec] transition-colors"
-      >
-        <LayoutTemplate size={13} className="text-[#6b7280]" />
-        <span>{current.label}</span>
-        <ChevronDown size={11} className={`text-[#9ca3af] transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-44 bg-white border border-[#e5e7eb] rounded-2xl shadow-lg z-50 overflow-hidden py-1">
-          {STYLE_ROUTES.map((s) => (
-            <button
-              key={s.path}
-              type="button"
-              onClick={() => {
-                navigate({ pathname: s.path, search: loc.search });
-                setOpen(false);
-              }}
-              className={`w-full flex items-center justify-between px-4 py-2 text-xs transition-colors ${
-                s.path === loc.pathname
-                  ? "bg-[#f0fdf4] text-[#16a34a] font-semibold"
-                  : "text-[#374151] hover:bg-[#f9fafb]"
-              }`}
-            >
-              <span>{s.label}</span>
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 type PaymentStatus = "pending" | "confirming" | "completed" | "error";
@@ -205,6 +148,9 @@ function getInitialParams(search: string, language: string): { lang: LangKey; sh
 }
 
 export default function TopupStylePage({ orderId, e, language, search }: TopupStylePageProps) {
+  const loadingPrimarySrc = typeof window !== "undefined"
+    ? `${window.location.origin}/Loading.svg`
+    : Loading;
   const initial = useMemo(() => getInitialParams(search, language), [search, language]);
   const [lang, setLang] = useState<LangKey>(initial.lang);
   const [dark, setDark] = useState(initial.dark);
@@ -442,7 +388,17 @@ export default function TopupStylePage({ orderId, e, language, search }: TopupSt
     return (
       <div className="fixed inset-0 z-50 bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center">
         <div className="flex w-full flex-col items-center justify-center">
-          <img src={Loading} alt="loading" className="block max-w-full" />
+          <img
+            src={loadingPrimarySrc}
+            alt="loading"
+            className="block max-w-full"
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallbackApplied) {
+                e.currentTarget.dataset.fallbackApplied = "1";
+                e.currentTarget.src = Loading;
+              }
+            }}
+          />
         </div>
       </div>
     );
@@ -457,7 +413,6 @@ export default function TopupStylePage({ orderId, e, language, search }: TopupSt
       <div className={`w-full max-w-sm md:max-w-xl ${status === "error" ? "" : "min-h-screen"} flex flex-col`} style={{ background: th.pageBg }}>
         {(showSelector || true) && (
           <div className="flex items-center justify-end gap-2 px-4 pt-3 pb-1">
-            <StyleRouteSelector />
             {showSelector && <LangSelector lang={lang} onChange={setLang} />}
             <button
               type="button"
@@ -653,7 +608,7 @@ export default function TopupStylePage({ orderId, e, language, search }: TopupSt
           <div className="px-5 mb-1">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs" style={{ color: th.subText }}>{t.rechargeAmount}</span>
-              <span className="text-[10px] text-[#ef4444]">{t.amountHint}</span>
+              <span className="text-[10px] text-[#ef4444] text-right ml-auto">{t.amountHint}</span>
             </div>
             <div className={`flex items-end justify-between py-2.5 ${status === "error" ? "" : "border-b"}`} style={{ borderColor: th.amtBorder }}>
               <div className="flex items-baseline gap-2">
@@ -672,12 +627,16 @@ export default function TopupStylePage({ orderId, e, language, search }: TopupSt
                 {[currency, chainName].filter(Boolean).join(" · ") || "—"}
               </span>
             </div>
-            <div className="flex flex-col md:flex-row gap-3 items-stretch">
-              <div ref={qrRef} className="flex-shrink-0 p-2 rounded-xl shadow-sm self-center md:self-start border" style={{ background: th.qrBg, borderColor: th.qrBorder }}>
-                <QRCodeSVG value={walletAddress || "-"} size={168} />
+            <div className="flex flex-row gap-2.5 items-stretch md:gap-3">
+              <div ref={qrRef} className="flex-shrink-0 p-1.5 md:p-2 rounded-xl shadow-sm self-start border" style={{ background: th.qrBg, borderColor: th.qrBorder }}>
+                <QRCodeSVG
+                  value={walletAddress || "-"}
+                  size={168}
+                  className="w-32 h-32 md:w-[168px] md:h-[168px]"
+                />
               </div>
               <div className="flex-1 flex flex-col justify-between min-w-0">
-                <div className="rounded-xl px-3 py-2.5 mb-2 flex-1 border" style={{ background: th.inputBg, borderColor: th.inputBorder }}>
+                <div className="rounded-xl px-2.5 py-2 mb-2 flex-1 border md:px-3 md:py-2.5" style={{ background: th.inputBg, borderColor: th.inputBorder }}>
                   <p className="text-[9px] mb-1 uppercase tracking-wide leading-none" style={{ color: th.mutedText }}>{tA.paymentAddress}</p>
                   <div style={{ color: th.heading }}>
                     <FormattedAddress address={walletAddress} />

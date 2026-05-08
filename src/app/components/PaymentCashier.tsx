@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, Clock, Loader2, Globe, ChevronDown, Check, Zap, AlertTriangle, CircleDollarSign, Copy, ExternalLink, CircleX, CloudOff } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { useLocation, useNavigate } from "react-router-dom";
 import { queryOrder, QueryOrderResponse } from "../../services/index"
 import { formatTime, remainingSeconds, formatDuration, remainingSecondsWithFormat } from "../../utils/TimeUtils"
 import { templateReplace, isValidString, cutNumberStr } from "../../utils/StringUtils"
@@ -13,384 +12,16 @@ import Loading from "../../svg/Loading.svg";
 
 type PaymentStatus = 'pending' | 'confirming' | 'completed' | 'error';
 
-const translations = {
-  'zh_CN': {
-    paymentInfo: "支付信息",
-    pending: "等待支付",
-    confirming: "支付确认中",
-    completed: "支付完成",
-    orderId: "订单号",
-    copy: "复制",
-    expireTime: "订单有效时间",
-    timeLeft: "剩余",
-    currency: "支付币种",
-    paymentAddress: "收款地址",
-    amount: "支付金额",
-    network: "支付网络",
-    address: "转账地址",
-    networkAlert: "请务必使用",
-    networkAlertSuffix: "网络",
-    clickToCopy: "点击复制地址",
-    onlySupport: "仅支持",
-    onlySupportSuffix: "充值",
-    paymentSuccess: "支付成功",
-    paymentError: "支付失败",
-    depositConfirmed: "您的充值已到账",
-    note: "注意:",
-    note1: "请在有效时间内完成支付;",
-    note2: "收款地址随时变化，请务保存收款信息;",
-    note3: "请仔细核对充值金额;",
-    note4: "转账完成后请耐心等待区块确认。",
-    contactSupport: "有任何疑问，请随时联系在线支持!",
-    copied: "已复制",
-    min: "分",
-    sec: "秒",
-    payNow: "立即充值",
-    amountWarning: "请确保扣除矿工费后，实际到账金额与上述金额相等。",
-    addressWarning: "此二维码仅限一次付款，重复付款将无法入账，请确保转账网络为{chainName}，否则资产可能永久丢失。",
-    exchangeRate: "汇率:",
-    hash: "交易哈希",
-    lookTransaction: "查看交易",
-    saveQrCode: "保存二维码",
-    copyAddress: "复制地址"
-  },
-  'zh_HK': {
-    paymentInfo: "支付資訊",
-    pending: "等待支付",
-    confirming: "支付確認中",
-    completed: "支付完成",
-    orderId: "訂單號",
-    copy: "複製",
-    expireTime: "訂單有效時間",
-    timeLeft: "剩餘",
-    currency: "支付幣種",
-    paymentAddress: "收款地址",
-    amount: "支付金額",
-    network: "支付網絡",
-    address: "轉賬地址",
-    networkAlert: "請務必使用",
-    networkAlertSuffix: "網���",
-    clickToCopy: "點擊複製地址",
-    onlySupport: "僅支持",
-    onlySupportSuffix: "充值",
-    paymentSuccess: "支付成功",
-    paymentError: "付款失敗",
-    depositConfirmed: "您的充值已到賬",
-    note: "注意:",
-    note1: "請在有效時間內完成支付;",
-    note2: "收款地址隨時變化，請務必保存收款資訊;",
-    note3: "請仔細核對充值金額;",
-    note4: "轉賬完成後請耐心等待區塊確認。",
-    contactSupport: "有任何疑問，請隨時聯繫在線支持!",
-    copied: "已複製",
-    min: "分",
-    sec: "秒",
-    payNow: "立即充值",
-    amountWarning: "請確保扣除礦工費後，實際到賬金額與上述金額相等。",
-    addressWarning: "此二維碼僅限一次付款，重複付款將無法入賬，請確保轉賬網絡為{chainName}，否則資產可能永久丟失。",
-    exchangeRate: "匯率:",
-    hash: "交易雜湊",
-    lookTransaction: "查看交易",
-    saveQrCode: "保存二維碼",
-    copyAddress: "複製地址"
-  },
-  'en_US': {
-    paymentInfo: "Payment Info",
-    pending: "Pending",
-    confirming: "Confirming",
-    completed: "Completed",
-    orderId: "Order ID",
-    copy: "Copy",
-    expireTime: "Valid Until",
-    timeLeft: "Time Left",
-    currency: "Payment Currency",
-    paymentAddress: "Payment Address",
-    amount: "Amount",
-    network: "Network",
-    address: "Transfer Address",
-    networkAlert: "Please use",
-    networkAlertSuffix: "network",
-    clickToCopy: "Click to copy",
-    onlySupport: "Only support",
-    onlySupportSuffix: "deposit",
-    paymentSuccess: "Payment Successful",
-    paymentError: "Payment Failed",
-    depositConfirmed: "Deposit confirmed successfully",
-    note: "Note:",
-    note1: "Please complete payment within valid time.",
-    note2: "Address changes periodically, do not save.",
-    note3: "Please check the amount carefully.",
-    note4: "Please wait for block confirmation.",
-    contactSupport: "Any questions? Contact online support!",
-    copied: "Copied",
-    min: "m",
-    sec: "s",
-    payNow: "Pay Now",
-    amountWarning: "Please ensure the actual amount received equals the above amount after deducting gas fees.",
-    addressWarning: "This QR code is for one-time payment only. Repeated payments will not be credited. Please ensure the transfer network is {chainName}, otherwise assets may be lost forever.",
-    exchangeRate: "Rate:",
-    hash: "Tx Hash",
-    lookTransaction: "View Transaction",
-    saveQrCode: "Save QR Code",
-    copyAddress: "Copy Address"
-  },
-  'ja_JP': {
-    paymentInfo: "支払い情報",
-    pending: "支払い待ち",
-    confirming: "確認中",
-    completed: "完了",
-    orderId: "注文ID",
-    copy: "コピー",
-    expireTime: "有効期限",
-    timeLeft: "残り",
-    currency: "通貨",
-    paymentAddress: "受取アドレス",
-    amount: "金額",
-    network: "ネットワーク",
-    address: "アドレス",
-    networkAlert: "必ず",
-    networkAlertSuffix: "ネットワークを使用してください",
-    clickToCopy: "クリックしてコピー",
-    onlySupport: "",
-    onlySupportSuffix: "のみ対応",
-    paymentSuccess: "支払い成功",
-    paymentError: "支払い失敗",
-    depositConfirmed: "入金が確認されました",
-    note: "注意:",
-    note1: "有効期限内に支払いを完了してください。",
-    note2: "アドレスは変更されます。保存しないでください。",
-    note3: "金額をよく確認してください。",
-    note4: "ブロック確認をお待ちください。",
-    contactSupport: "ご不明な点は、サポートまで！",
-    copied: "コピーしました",
-    min: "分",
-    sec: "秒",
-    payNow: "今すぐ支払う",
-    amountWarning: "ガス代を差し引いた後、実際の着金額が上記の金額と等しいことを確認してください。",
-    addressWarning: "このQRコードは1回限りの支払いです。重複して支払うと入金されません。転送ネットワークが {chainName} であることを確認してください。そうしないと、資産が永久に失われる可能性があります。",
-    exchangeRate: "レート:",
-    hash: "Txハッシュ",
-    lookTransaction: "トランザクションを確認",
-    saveQrCode: "QRコードを保存",
-    copyAddress: "アドレスをコピー"
-  },
-  'ko_KR': {
-    paymentInfo: "결제 정보",
-    pending: "결제 대기",
-    confirming: "확인 중",
-    completed: "완료",
-    orderId: "주문 ID",
-    copy: "복사",
-    expireTime: "유효 시간",
-    timeLeft: "남은 시간",
-    currency: "통화",
-    paymentAddress: "수신 주소",
-    amount: "금액",
-    network: "네트워크",
-    address: "주소",
-    networkAlert: "반드시",
-    networkAlertSuffix: "네트워크를 사용하십시오",
-    clickToCopy: "복사하려면 클릭",
-    onlySupport: "",
-    onlySupportSuffix: "입금만 지원",
-    paymentSuccess: "결제 성공",
-    paymentError: "결제 실패",
-    depositConfirmed: "입금이 확인되었습니다",
-    note: "주의:",
-    note1: "유효 시간 내에 결제를 완료하십시오.",
-    note2: "주소는 수시로 변경되므로 저장하지 마십시오.",
-    note3: "입금 금액을 주의 깊게 확인하십시오.",
-    note4: "송금 후 블록 확인을 기다려 주십시오.",
-    contactSupport: "궁금한 점은 지원팀에 문의하세요!",
-    copied: "복사됨",
-    min: "분",
-    sec: "초",
-    payNow: "즉시 결제",
-    amountWarning: "가스비를 공제한 후 실제 입금 금액이 위 금액과 동일한지 확인하십시오.",
-    addressWarning: "이 QR 코드는 일회용 결제 전용입니다. 중복 결제는 입금되지 않습니다. 전송 네트워크가 {chainName} 인지 확인하십시오. 그렇지 않으면 자산이 영구적으로 손실될 수 있습니다.",
-    exchangeRate: "환율:",
-    hash: "Tx 해시",
-    lookTransaction: "트랜잭션 확인",
-    saveQrCode: "QR 코드 저장",
-    copyAddress: "주소 복사"
-  },
-  'es_ES': {
-    paymentInfo: "Información de Pago",
-    pending: "Pendiente",
-    confirming: "Confirmando",
-    completed: "Completado",
-    orderId: "ID del Pedido",
-    copy: "Copiar",
-    expireTime: "Válido Hasta",
-    timeLeft: "Tiempo Restante",
-    currency: "Moneda",
-    paymentAddress: "Dirección de Pago",
-    amount: "Cantidad",
-    network: "Red",
-    address: "Dirección",
-    networkAlert: "Por favor use la red",
-    networkAlertSuffix: "",
-    clickToCopy: "Clic para copiar",
-    onlySupport: "Solo soporta depósitos en",
-    onlySupportSuffix: "",
-    paymentSuccess: "Pago Exitoso",
-    paymentError: "Pago fallido",
-    depositConfirmed: "Depósito confirmado exitosamente",
-    note: "Nota:",
-    note1: "Complete el pago dentro del tiempo válido.",
-    note2: "La dirección cambia periódicamente, no la guarde.",
-    note3: "Verifique la cantidad cuidadosamente.",
-    note4: "Espere la confirmación del bloque.",
-    contactSupport: "¿Preguntas? ¡Contacte soporte en línea!",
-    copied: "Copiado",
-    min: "m",
-    sec: "s",
-    payNow: "Pagar Ahora",
-    amountWarning: "Asegúrese de que el monto real recibido sea igual al monto anterior después de deducir las tarifas de gas.",
-    addressWarning: "Este código QR es solo para un pago único. Los pagos repetidos no se acreditarán. Asegúrese de que la red de transferencia sea {chainName}; de lo contrario, los activos pueden perderse para siempre.",
-    exchangeRate: "Tasa:",
-    hash: "Hash de transacción",
-    lookTransaction: "Ver transacción",
-    saveQrCode: "Guardar QR",
-    copyAddress: "Copiar Dirección"
-  },
-  'tr_TR': {
-    paymentInfo: "Ödeme Bilgileri",
-    pending: "Bekliyor",
-    confirming: "Onaylanıyor",
-    completed: "Tamamlandı",
-    orderId: "Sipariş ID",
-    copy: "Kopyala",
-    expireTime: "Geçerlilik Süresi",
-    timeLeft: "Kalan Süre",
-    currency: "Para Birimi",
-    paymentAddress: "Ödeme Adresi",
-    amount: "Miktar",
-    network: "Ağ",
-    address: "Adres",
-    networkAlert: "Lütfen",
-    networkAlertSuffix: "ağını kullanın",
-    clickToCopy: "Kopyalamak için tıkla",
-    onlySupport: "Sadece",
-    onlySupportSuffix: "yatırımını destekler",
-    paymentSuccess: "Ödeme Başarılı",
-    paymentError: "Ödeme Başarısız",
-    depositConfirmed: "Yatırımınız başarıyla onaylandı",
-    note: "Not:",
-    note1: "Lütfen ödemeyi geçerli süre içinde tamamlayın.",
-    note2: "Adres periyodik olarak değişir, kaydetmeyin.",
-    note3: "Lütfen miktarı dikkatlice kontrol edin.",
-    note4: "Lütfen blok onayını bekleyin.",
-    contactSupport: "Sorunuz mu var? Canlı desteğe ulaşın!",
-    copied: "Kopyalandı",
-    min: "dk",
-    sec: "sn",
-    payNow: "Hemen Öde",
-    amountWarning: "Lütfen gaz ücretleri düşüldükten sonra alınan gerçek tutarın yukarıdaki tutara eşit olduğundan emin olun.",
-    addressWarning: "Bu QR kodu sadece tek seferlik ödeme içindir. Tekrarlanan ödemeler hesaba geçmeyecektir. Lütfen transfer ağının {chainName} olduğundan emin olun, aksi takdirde varlıklar kalıcı olarak kaybolabilir.",
-    exchangeRate: "Kur:",
-    hash: "İşlem Hash",
-    lookTransaction: "İşlemi Gör",
-    saveQrCode: "QR Kaydet",
-    copyAddress: "Adresi Kopyala"
-  },
-  'de_DE': {
-    paymentInfo: "Zahlungsinformationen",
-    pending: "Ausstehend",
-    confirming: "Bestätigen",
-    completed: "Abgeschlossen",
-    orderId: "Bestell-ID",
-    copy: "Kopieren",
-    expireTime: "Gültig bis",
-    timeLeft: "Verbleibende Zeit",
-    currency: "Währung",
-    paymentAddress: "Zahlungsadresse",
-    amount: "Betrag",
-    network: "Netzwerk",
-    address: "Adresse",
-    networkAlert: "Bitte verwenden Sie das",
-    networkAlertSuffix: "Netzwerk",
-    clickToCopy: "Zum Kopieren klicken",
-    onlySupport: "Unterstützt nur",
-    onlySupportSuffix: "Einzahlung",
-    paymentSuccess: "Zahlung erfolgreich",
-    paymentError: "Zahlung fehlgeschlagen",
-    depositConfirmed: "Einzahlung erfolgreich bestätigt",
-    note: "Hinweis:",
-    note1: "Bitte schließen Sie die Zahlung innerhalb der gültigen Zeit ab.",
-    note2: "Adresse ändert sich regelmäßig, nicht speichern.",
-    note3: "Bitte überprüfen Sie den Betrag sorgfältig.",
-    note4: "Bitte warten Sie auf die Blockbestätigung.",
-    contactSupport: "Fragen? Kontaktieren Sie den Online-Support!",
-    copied: "Kopiert",
-    min: "m",
-    sec: "s",
-    payNow: "Jetzt bezahlen",
-    amountWarning: "Bitte stellen Sie sicher, dass der tatsächlich erhaltene Betrag nach Abzug der Gasgebühren dem oben genannten Betrag entspricht.",
-    addressWarning: "Dieser QR-Code ist nur für eine einmalige Zahlung bestimmt. Wiederholte Zahlungen werden nicht gutgeschrieben. Bitte stellen Sie sicher, dass das Überweisungsnetzwerk {chainName} ist, andernfalls können Vermögenswerte für immer verloren gehen.",
-    exchangeRate: "Kurs:",
-    hash: "Tx-Hash",
-    lookTransaction: "Transaktion anzeigen",
-    saveQrCode: "QR Speichern",
-    copyAddress: "Adresse kopieren"
-  },
-  'fr_FR': {
-    paymentInfo: "Infos de paiement",
-    pending: "En attente",
-    confirming: "Confirmation",
-    completed: "Terminé",
-    orderId: "ID Commande",
-    copy: "Copier",
-    expireTime: "Valable jusqu'au",
-    timeLeft: "Temps restant",
-    currency: "Devise",
-    paymentAddress: "Adresse de paiement",
-    amount: "Montant",
-    network: "Réseau",
-    address: "Adresse",
-    networkAlert: "Veuillez utiliser le réseau",
-    networkAlertSuffix: "",
-    clickToCopy: "Cliquer pour copier",
-    onlySupport: "Ne supporte que les dépôts en",
-    onlySupportSuffix: "",
-    paymentSuccess: "Paiement réussi",
-    paymentError: "Échec du paiement",
-    depositConfirmed: "Dépôt confirmé avec succès",
-    note: "Note :",
-    note1: "Veuillez compléter le paiement dans le temps imparti.",
-    note2: "L'adresse change périodiquement, ne pas enregistrer.",
-    note3: "Veuillez vérifier le montant soigneusement.",
-    note4: "Veuillez attendre la confirmation du bloc.",
-    contactSupport: "Des questions ? Contactez le support en ligne !",
-    copied: "Copié",
-    min: "m",
-    sec: "s",
-    payNow: "Payer maintenant",
-    amountWarning: "Veuillez vous assurer que le montant réel reçu est égal au montant ci-dessus après déduction des frais de gaz.",
-    addressWarning: "Ce code QR est pour un paiement unique seulement. Les paiements répétés ne seront pas crédités. Veuillez vous assurer que le réseau de transfert est {chainName}, sinon les actifs peuvent être perdus à jamais.",
-    exchangeRate: "Taux:",
-    hash: "Hash de transaction",
-    lookTransaction: "Voir la transaction",
-    saveQrCode: "Enregistrer QR",
-    copyAddress: "Copier l'adresse"
-  }
-};
-
-const PAGE_STYLES = [
-  { path: "/pro", label: "专业版" },
-  { path: "/enterprise", label: "企业版" },
-] as const;
-
 type PaymentCashierProps = {
   orderId: string;
   e: string;
   language: string;
-  search: string;
 };
 
-const PaymentCashier = ({ orderId, e, language, search }: PaymentCashierProps) => {
-  const navigate = useNavigate();
-  const location = useLocation();
+const PaymentCashier = ({ orderId, e, language }: PaymentCashierProps) => {
+  const loadingPrimarySrc = typeof window !== 'undefined'
+    ? `${window.location.origin}/Loading.svg`
+    : Loading;
   const initialLanguage: Language = language in paymentCashierTranslations
     ? (language as Language)
     : 'en_US';
@@ -580,7 +211,17 @@ const PaymentCashier = ({ orderId, e, language, search }: PaymentCashierProps) =
     return (
       <div className="fixed inset-0 z-50 bg-[#1c1c1e] text-gray-200 p-4 font-sans flex justify-center items-center">
         <div className="flex w-full flex-col items-center justify-center">
-          <img src={Loading} alt="loading" className="block max-w-full" />
+          <img
+            src={loadingPrimarySrc}
+            alt="loading"
+            className="block max-w-full"
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallbackApplied) {
+                e.currentTarget.dataset.fallbackApplied = '1';
+                e.currentTarget.src = Loading;
+              }
+            }}
+          />
         </div>
       </div>
     )
@@ -622,31 +263,6 @@ const PaymentCashier = ({ orderId, e, language, search }: PaymentCashierProps) =
           </DropdownMenu.Portal>
         </DropdownMenu.Root>
 
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger asChild>
-            <button className="flex items-center gap-2 bg-[#2c2c2e] hover:bg-[#3a3a3c] text-gray-300 px-3 py-2 rounded-lg text-sm border border-white/10 transition-colors outline-none w-full">
-              <span>风格切换</span>
-              <ChevronDown size={14} className="opacity-50 ml-auto" />
-            </button>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Portal>
-            <DropdownMenu.Content
-              className="z-[120] bg-[#2c2c2e] border border-white/10 rounded-lg shadow-xl p-1 min-w-[120px] animate-in fade-in zoom-in-95 duration-200"
-              sideOffset={5}
-            >
-              {PAGE_STYLES.map((s) => (
-                <DropdownMenu.Item
-                  key={s.path}
-                  className="flex items-center justify-between text-sm text-gray-300 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md cursor-pointer outline-none"
-                  onSelect={() => navigate({ pathname: s.path, search })}
-                >
-                  <span>{s.label}</span>
-                  {location.pathname === s.path && <Check size={14} className="text-blue-400" />}
-                </DropdownMenu.Item>
-              ))}
-            </DropdownMenu.Content>
-          </DropdownMenu.Portal>
-        </DropdownMenu.Root>
       </div>
 
       {/* Container - Scales up on Desktop */}
